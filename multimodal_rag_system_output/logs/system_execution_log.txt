@@ -33,3 +33,696 @@
 2025-05-12 19:03:03,498 - INFO - [1488022160.py.__init__:584] -   平均向量索引路径: multimodal_rag_system_output\data_storage\vector_indices\mean_vector_index.faiss
 2025-05-12 19:03:03,498 - INFO - [1488022160.py.__init__:588] -   - 正在初始化内部 MultimodalEncoder，使用 CLIP 模型: openai/clip-vit-base-patch32...
 2025-05-12 19:03:03,498 - INFO - [1488022160.py.__init__:308] - 开始初始化 MultimodalEncoder，尝试加载 CLIP 模型: openai/clip-vit-base-patch32
+2025-05-12 19:04:43,931 - INFO - [1488022160.py.__init__:317] - CLIP Processor for 'openai/clip-vit-base-patch32' 加载成功。
+2025-05-12 19:05:44,275 - INFO - [1488022160.py.__init__:321] - CLIP Model 'openai/clip-vit-base-patch32' 加载成功。
+2025-05-12 19:05:44,276 - INFO - [1488022160.py.__init__:327] - CLIP 模型的特征向量维度为: 512
+2025-05-12 19:05:44,277 - INFO - [1488022160.py.__init__:341] - 未检测到 CUDA 支持，模型将运行在 CPU 上 (编码速度可能较慢)。
+2025-05-12 19:05:44,281 - INFO - [1488022160.py.__init__:344] - 模型已成功移动到设备: cpu
+2025-05-12 19:05:44,281 - INFO - [1488022160.py.__init__:345] - MultimodalEncoder 初始化成功完成。我已经准备好进行编码工作了。
+2025-05-12 19:05:44,282 - INFO - [1488022160.py.__init__:592] -   - MultimodalEncoder 初始化完成。特征向量维度为: 512。
+2025-05-12 19:05:44,283 - INFO - [1488022160.py.__init__:599] -   - 正在初始化 SQLite 数据库，路径: 'multimodal_rag_system_output\data_storage\database\multimodal_doc_store.db'...
+2025-05-12 19:05:44,283 - INFO - [1488022160.py._init_db:632] - 正在连接并初始化数据库表结构于路径: 'multimodal_rag_system_output\data_storage\database\multimodal_doc_store.db'...
+2025-05-12 19:05:44,311 - INFO - [1488022160.py._init_db:670] - 数据库表 'documents' (及索引 'idx_doc_id') 初始化成功，或已存在。
+2025-05-12 19:05:44,312 - INFO - [1488022160.py.__init__:602] -   - SQLite 数据库初始化完成。
+2025-05-12 19:05:44,313 - INFO - [1488022160.py.__init__:611] -   - 正在加载或创建 Faiss 向量索引...
+2025-05-12 19:05:44,313 - INFO - [1488022160.py._load_or_create_faiss_index:694] - 正在为 '文本(Text)' 索引加载或创建 Faiss 文件于路径: 'multimodal_rag_system_output\data_storage\vector_indices\text_vector_index.faiss'...
+2025-05-12 19:05:44,315 - INFO - [1488022160.py._load_or_create_faiss_index:728] - 未找到 '文本(Text)' Faiss 索引文件: 'multimodal_rag_system_output\data_storage\vector_indices\text_vector_index.faiss'。将创建一个新的空索引。
+2025-05-12 19:05:44,316 - INFO - [1488022160.py._create_new_faiss_index:753] - 开始为 '文本(Text)' 创建一个新的空 Faiss 索引...
+2025-05-12 19:05:44,317 - INFO - [1488022160.py._create_new_faiss_index:772] - 已成功为 '文本(Text)' 创建一个新的、空的 Faiss 索引 (类型: IndexIDMap2 包裹 IndexFlatIP)。
+2025-05-12 19:05:44,318 - INFO - [1488022160.py._create_new_faiss_index:773] -     索引维度: 512。
+2025-05-12 19:05:44,318 - INFO - [1488022160.py._create_new_faiss_index:774] -     相似度度量: 内积 (Inner Product) - 对于归一化向量，这等同于余弦相似度。
+2025-05-12 19:05:44,318 - INFO - [1488022160.py._load_or_create_faiss_index:694] - 正在为 '图像(Image)' 索引加载或创建 Faiss 文件于路径: 'multimodal_rag_system_output\data_storage\vector_indices\image_vector_index.faiss'...
+2025-05-12 19:05:44,319 - INFO - [1488022160.py._load_or_create_faiss_index:728] - 未找到 '图像(Image)' Faiss 索引文件: 'multimodal_rag_system_output\data_storage\vector_indices\image_vector_index.faiss'。将创建一个新的空索引。
+2025-05-12 19:05:44,319 - INFO - [1488022160.py._create_new_faiss_index:753] - 开始为 '图像(Image)' 创建一个新的空 Faiss 索引...
+2025-05-12 19:05:44,320 - INFO - [1488022160.py._create_new_faiss_index:772] - 已成功为 '图像(Image)' 创建一个新的、空的 Faiss 索引 (类型: IndexIDMap2 包裹 IndexFlatIP)。
+2025-05-12 19:05:44,321 - INFO - [1488022160.py._create_new_faiss_index:773] -     索引维度: 512。
+2025-05-12 19:05:44,321 - INFO - [1488022160.py._create_new_faiss_index:774] -     相似度度量: 内积 (Inner Product) - 对于归一化向量，这等同于余弦相似度。
+2025-05-12 19:05:44,322 - INFO - [1488022160.py._load_or_create_faiss_index:694] - 正在为 '平均(Mean)' 索引加载或创建 Faiss 文件于路径: 'multimodal_rag_system_output\data_storage\vector_indices\mean_vector_index.faiss'...
+2025-05-12 19:05:44,322 - INFO - [1488022160.py._load_or_create_faiss_index:728] - 未找到 '平均(Mean)' Faiss 索引文件: 'multimodal_rag_system_output\data_storage\vector_indices\mean_vector_index.faiss'。将创建一个新的空索引。
+2025-05-12 19:05:44,323 - INFO - [1488022160.py._create_new_faiss_index:753] - 开始为 '平均(Mean)' 创建一个新的空 Faiss 索引...
+2025-05-12 19:05:44,323 - INFO - [1488022160.py._create_new_faiss_index:772] - 已成功为 '平均(Mean)' 创建一个新的、空的 Faiss 索引 (类型: IndexIDMap2 包裹 IndexFlatIP)。
+2025-05-12 19:05:44,324 - INFO - [1488022160.py._create_new_faiss_index:773] -     索引维度: 512。
+2025-05-12 19:05:44,324 - INFO - [1488022160.py._create_new_faiss_index:774] -     相似度度量: 内积 (Inner Product) - 对于归一化向量，这等同于余弦相似度。
+2025-05-12 19:05:44,325 - INFO - [1488022160.py.__init__:616] -   - 所有 Faiss 索引均已准备就绪。
+2025-05-12 19:05:44,325 - INFO - [1488022160.py.__init__:622] - Indexer 初始化成功完成。我将竭尽全力确保索引的准确和高效。
+2025-05-12 19:05:44,326 - INFO - [1488022160.py.index_documents:797] - 开始执行文档索引流程，准备处理 218 个文档...
+2025-05-12 19:05:44,328 - INFO - [1488022160.py.index_documents:827] - 开始遍历 218 个文档进行处理和编码...
+2025-05-12 19:05:44,529 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本=': Evidence for Bandgap Referen...', 图像='Bandgap1.jpg')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:44,660 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='1. **Evidence 1**: Q1 and Q2 g...', 图像='Bandgap10.jpg')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:44,760 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='1. **PTAT Voltage Generation:*...', 图像='Bandgap11.jpg')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:44,868 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本=': Evidence:\n1. **Presence of ...', 图像='Bandgap23.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:44,975 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本=': 1. **PTAT Voltage Generation...', 图像='Bandgap26.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:45,128 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**\n\nThis circuit is identifi...', 图像='Bandgap3.jpg')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:45,235 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**\n\n**Evidence for Bandgap R...', 图像='Bandgap31.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:45,343 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本=': 1. **Evidence 1: PTAT Curren...', 图像='Bandgap32.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:45,441 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**Evidence:**\n     - The circ...', 图像='Bandgap33.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:45,544 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**This circuit is a **bandgap ...', 图像='Bandgap34.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:45,652 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本=': 1. **PTAT Current Source**:\...', 图像='Bandgap35.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:45,761 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**\n\nBased on the analysis, t...', 图像='Bandgap36.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:45,860 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='Key Evidence of Bandgap Refere...', 图像='Bandgap37.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:45,962 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本=':Key Evidence of Bandgap Refer...', 图像='Bandgap38.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:46,064 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本=': Identification of Bandgap Re...', 图像='Bandgap39.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:46,203 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**\n\nThis circuit qualifies a...', 图像='Bandgap4.jpg')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:46,351 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本=': Evidence for Bandgap Referen...', 图像='Bandgap40.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:46,455 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本=':\nBased on the analysis, the ...', 图像='Bandgap41.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:46,605 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本=':**\nThis circuit is a **bandg...', 图像='Bandgap42.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:46,715 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='The circuit represented by the...', 图像='Bandgap43.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:46,817 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**\n\nBased on the analysis, t...', 图像='Bandgap44.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:46,916 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**\n\n#### **Why Is This a Ban...', 图像='Bandgap45.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:47,023 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**Based on the following evide...', 图像='Bandgap46.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:47,125 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='Based on the analysis, the cir...', 图像='Bandgap47.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:47,228 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='#### Evidence for Bandgap Refe...', 图像='Bandgap48.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:47,320 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**\n\nThis circuit is a **Band...', 图像='Bandgap50.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:47,421 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**\n\nBased on the provided ci...', 图像='Bandgap52.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:47,526 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='The circuit provided is indeed...', 图像='Bandgap53.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:47,618 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='This circuit qualifies as a ba...', 图像='Bandgap54.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:47,716 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='------------------\nThis circu...', 图像='Bandgap56.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:47,815 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**\n\nBased on the circuit's o...', 图像='Bandgap57.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:47,931 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本=': This circuit can be consider...', 图像='Bandgap59.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:48,026 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='The provided circuit is indeed...', 图像='Bandgap60.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:48,128 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本=' **Evidence 1**: Q1 and Q2 wit...', 图像='Bandgap61.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:48,241 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='------\n\nBased on the followi...', 图像='Bandgap62.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:48,351 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**\nThis circuit can be defini...', 图像='Bandgap63.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:48,455 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**Evidence for Bandgap Referen...', 图像='Bandgap64.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:48,551 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='1. **PTAT Generation:** Q1, Q2...', 图像='Bandgap65.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:48,655 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='Based on the evidence, the cir...', 图像='Bandgap67.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:48,755 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**\n\nThis circuit can be conc...', 图像='Bandgap68.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:48,848 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**\nThis circuit is a bandgap ...', 图像='Bandgap69.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:48,945 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**\nThis circuit is a bandgap ...', 图像='Bandgap70.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:49,046 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本=': 1. **PTAT Voltage Generation...', 图像='Bandgap71.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:49,158 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本=': Evidence for Bandgap Referen...', 图像='Bandgap72.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:49,261 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本=' **Evidence for Bandgap Behavi...', 图像='Bandgap73.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:49,360 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='1. **Presence of PTAT and CTAT...', 图像='Bandgap75.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:49,461 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='------\nBased on the following...', 图像='Bandgap83.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:49,566 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='1. **Evidence 1:** Q1 and Q2 f...', 图像='Bandgap86.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:49,673 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**\n\nThe provided circuit is ...', 图像='Bandgap87.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:49,780 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='1. **Presence of PTAT and CTAT...', 图像='Bandgap88.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:49,912 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+**Analysis Conclusion:**
+
+...', 图像='Comparator1.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:50,015 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='The circuit is confirmed to be...', 图像='Comparator10.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:50,130 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='The circuit is confirmed to be...', 图像='Comparator11.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:50,231 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='Based on the provided circuit ...', 图像='Comparator12.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:50,349 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='#### Evidence Confirming Compa...', 图像='Comparator13.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:50,453 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Evidence Supporting...', 图像='Comparator14.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:50,558 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Summary**
+The circu...', 图像='Comparator15.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:50,670 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='#### Evidence Supporting Compa...', 图像='Comparator16.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:50,777 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='Template
+
+**Analysis Conclusio...', 图像='Comparator17.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:50,884 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='This circuit is confirmed to b...', 图像='Comparator18.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:50,989 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='#### **Comparator Confirmation...', 图像='Comparator19.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:51,090 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+**Evidence Supporting Comp...', 图像='Comparator2.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:51,201 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Evidence Confirming...', 图像='Comparator20.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:51,310 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+Based on the provided circ...', 图像='Comparator21.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:51,411 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Evidence Supporting...', 图像='Comparator22.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:51,531 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+Based on the provided circ...', 图像='Comparator23.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:51,663 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='#### Evidence and Explanation:...', 图像='Comparator24.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:51,798 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='#### Comparator Confirmation:
+...', 图像='Comparator25.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:51,908 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+Based on the provided diag...', 图像='Comparator26.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:52,026 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Comparator Confirma...', 图像='Comparator27.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:52,138 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='#### **Evidence Supporting Com...', 图像='Comparator28.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:52,239 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Evidence Supporting...', 图像='Comparator29.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:52,348 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Evidence That This ...', 图像='Comparator3.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:52,463 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='#### Evidence Supporting Compa...', 图像='Comparator30.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:52,574 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='*Analysis Conclusion**
+
+Based ...', 图像='Comparator31.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:52,700 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+The circuit is confirmed t...', 图像='Comparator32.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:52,832 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+**Why This Circuit is a Co...', 图像='Comparator33.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:52,946 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Evidence Supporting...', 图像='Comparator34.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:53,058 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='#### **Evidence Supporting Com...', 图像='Comparator35.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:53,198 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='#### Evidence Supporting Compa...', 图像='Comparator36.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:53,296 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Evidence Supporting...', 图像='Comparator37.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:53,416 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Why is this Circuit...', 图像='Comparator38.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:53,537 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Evidence for Compar...', 图像='Comparator39.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:53,653 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='#### Confirmation of Comparato...', 图像='Comparator4.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:53,760 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Why This Circuit is...', 图像='Comparator40.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:53,868 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Evidence Supporting...', 图像='Comparator41.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:53,980 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Comparator Confirma...', 图像='Comparator42.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:54,156 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+**Evidence That This Circu...', 图像='Comparator43.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:54,258 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### Confirmation as Compa...', 图像='Comparator44.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:54,377 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='#### Evidence Confirming Compa...', 图像='Comparator45.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:54,483 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+Based on the detailed anal...', 图像='Comparator46.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:54,589 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+Based on the following evi...', 图像='Comparator47.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:54,698 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+Based on the provided circ...', 图像='Comparator48.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:54,805 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**Comparator Confirmation:**  ...', 图像='Comparator49.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:54,922 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='Based on the circuit structure...', 图像='Comparator5.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:55,057 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+Based on the detailed anal...', 图像='Comparator50.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:55,193 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Evidence Confirming...', 图像='Comparator51.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:55,312 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+Based on the circuit topol...', 图像='Comparator52.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:55,425 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+### **Comparator Confirmat...', 图像='Comparator53.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:55,547 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='#### Evidence and Confirmation...', 图像='Comparator54.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:55,661 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Comparator Confirma...', 图像='Comparator55.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:55,755 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+**Analysis Conclusion:**
+B...', 图像='Comparator56.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:55,871 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+Based on the following evi...', 图像='Comparator57.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:56,012 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='Template
+
+**Analysis Conclusio...', 图像='Comparator59.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:56,125 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+### **Why This Circuit is ...', 图像='Comparator6.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:56,258 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+Based on the circuit topol...', 图像='Comparator60.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:56,360 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**Confirmed Comparator Circuit...', 图像='Comparator61.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:56,466 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**Confirmation as Comparator C...', 图像='Comparator62.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:56,594 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='Based on explicit component re...', 图像='Comparator63.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:56,731 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='Based on the circuit diagram p...', 图像='Comparator64.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:56,864 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+Based on the detailed comp...', 图像='Comparator65.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:57,031 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='------------------
+
+**Conclusi...', 图像='Comparator66.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:57,286 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Evidence Supporting...', 图像='Comparator67.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:57,504 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Confirmation as a C...', 图像='Comparator68.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:57,766 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Why This Circuit is...', 图像='Comparator69.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:57,939 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+**Evidence-Based Confirmat...', 图像='Comparator7.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:58,138 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='Based on the circuit topology ...', 图像='Comparator70.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:58,333 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Evidence Supporting...', 图像='Comparator71.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:58,515 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+**This circuit is confirme...', 图像='Comparator72.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:58,723 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+Based on the structural an...', 图像='Comparator73.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:58,934 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='The provided circuit is confir...', 图像='Comparator74.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:59,307 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+**The circuit is confirmed...', 图像='Comparator75.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:59,475 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+**Confirmation:**
+The circ...', 图像='Comparator76.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:59,651 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='Template
+
+#### **Analysis Conc...', 图像='Comparator77.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:59,848 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Evidence for Compar...', 图像='Comparator78.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:05:59,911 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='#### Evidence of Comparator Fu...')。成功生成的向量: 文本向量。
+2025-05-12 19:06:00,062 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**Analysis Conclusion:**  
+Bas...', 图像='Comparator8.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:00,116 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='Template
+#### Analysis Conclus...')。成功生成的向量: 文本向量。
+2025-05-12 19:06:00,245 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Evidence Supporting...', 图像='Comparator81.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:00,296 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+Based on the following evid...')。成功生成的向量: 文本向量。
+2025-05-12 19:06:00,356 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+**Comparator Confirmation:...')。成功生成的向量: 文本向量。
+2025-05-12 19:06:00,491 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+Based on the provided circ...', 图像='Comparator84.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:00,547 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+**Based on the following e...')。成功生成的向量: 文本向量。
+2025-05-12 19:06:00,673 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+**Based on the provided ci...', 图像='Comparator86.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:00,728 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**Confirmation as a Comparator...')。成功生成的向量: 文本向量。
+2025-05-12 19:06:00,866 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='#### Evidence Supporting Compa...', 图像='Comparator88.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:01,002 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Comparator Confirma...', 图像='Comparator89.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:01,131 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Evidence the Circui...', 图像='Comparator9.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:01,266 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='#### Evidence Confirming Compa...', 图像='Comparator90.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:01,396 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+#### **Evidence Supporting...', 图像='Comparator91.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:01,532 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='**
+
+Based on the evidence prov...', 图像='Comparator92.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:01,709 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp100.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:01,836 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp101.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:01,971 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp107.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:02,097 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp108.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:02,223 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp109.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:02,341 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp110.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:02,469 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp111.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:02,778 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp114.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:02,925 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp118.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:03,035 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp119.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:03,154 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp12.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:03,269 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp125.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:03,380 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp126.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:03,493 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp127.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:03,603 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp130.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:03,718 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp131.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:03,830 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp132.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:03,940 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp134.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:04,050 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp135.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:04,158 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp137.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:04,259 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp138.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:04,373 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp139.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:04,492 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp14.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:04,635 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp140.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:04,771 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp141.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:04,881 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp143.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:04,989 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp146.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:05,093 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp147.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:05,211 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp148.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:05,331 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp149.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:05,442 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp150.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:05,561 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp152.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:05,672 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp153.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:05,787 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp158.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:05,897 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp161.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:06,012 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp162.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:06,124 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp163.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:06,245 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp165.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:06,353 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp18.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:06,471 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp21.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:06,584 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp22.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:06,694 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp23.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:06,812 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp24.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:06,920 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp25.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:07,019 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp26.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:07,113 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp28.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:07,223 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp29.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:07,329 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp30.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:07,427 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp31.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:07,525 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp32.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:07,628 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp34.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:07,729 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp40.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:07,846 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp44.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:07,967 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp45.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:08,077 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp48.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:08,172 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp51.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:08,274 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp53.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:08,368 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp56.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:08,474 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp57.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:08,576 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp58.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:08,695 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp59.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:08,801 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp60.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:08,904 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp61.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:09,012 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp62.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:09,124 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp69.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:09,228 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp70.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:09,345 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp73.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:09,454 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp74.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:09,566 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp8.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:09,686 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp81.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:09,798 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp86.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:09,899 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp88.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:10,010 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp89.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:10,128 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp91.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:10,234 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp92.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:10,338 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp98.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:10,421 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='"Based on the following eviden...', 图像='op_amp99.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:10,423 - INFO - [1488022160.py.index_documents:959] - 所有 218 个输入文档已遍历处理完毕。
+2025-05-12 19:06:10,423 - INFO - [1488022160.py.index_documents:960] - 准备将收集到的向量批量添加到 Faiss 索引中...
+2025-05-12 19:06:10,424 - INFO - [1488022160.py.index_documents:961] -   - 待添加文本向量数量: 218
+2025-05-12 19:06:10,425 - INFO - [1488022160.py.index_documents:962] -   - 待添加图像向量数量: 212
+2025-05-12 19:06:10,425 - INFO - [1488022160.py.index_documents:963] -   - 待添加平均向量数量: 212
+2025-05-12 19:06:10,427 - INFO - [1488022160.py.index_documents:973] - 已成功向文本(Text) Faiss 索引批量添加 218 个向量。当前索引总数: 218
+2025-05-12 19:06:10,428 - INFO - [1488022160.py.index_documents:983] - 已成功向图像(Image) Faiss 索引批量添加 212 个向量。当前索引总数: 212
+2025-05-12 19:06:10,429 - INFO - [1488022160.py.index_documents:993] - 已成功向平均(Mean) Faiss 索引批量添加 212 个向量。当前索引总数: 212
+2025-05-12 19:06:10,439 - INFO - [1488022160.py.index_documents:1003] - 数据库事务已成功提交。元数据更改已持久化。
+2025-05-12 19:06:10,440 - INFO - [1488022160.py.index_documents:1025] - 
+--- 文档索引过程总结 ---
+2025-05-12 19:06:10,440 - INFO - [1488022160.py.index_documents:1026] - - 输入文档总数: 218
+2025-05-12 19:06:10,441 - INFO - [1488022160.py.index_documents:1027] - - 因输入无效(缺少ID或内容)跳过的文档数: 0
+2025-05-12 19:06:10,441 - INFO - [1488022160.py.index_documents:1028] - - 因 'doc_id' 在数据库中已存在而跳过的文档数: 0
+2025-05-12 19:06:10,442 - INFO - [1488022160.py.index_documents:1029] - - 因检查重复项时数据库错误跳过的文档数: 0
+2025-05-12 19:06:10,443 - INFO - [1488022160.py.index_documents:1030] - - 因编码未能生成有效向量而跳过的文档数: 0
+2025-05-12 19:06:10,444 - INFO - [1488022160.py.index_documents:1031] - - 因数据库插入错误而跳过的文档数: 0
+2025-05-12 19:06:10,444 - INFO - [1488022160.py.index_documents:1032] - - 成功处理(编码成功+DB插入成功+准备添加到Faiss)的文档数: 218
+2025-05-12 19:06:10,445 - INFO - [1488022160.py.index_documents:1033] - - 向 Faiss 添加向量时发生错误的索引数量: 0
+2025-05-12 19:06:10,446 - INFO - [1488022160.py.index_documents:1039] - - 当前文本 Faiss 索引中的向量总数: 218
+2025-05-12 19:06:10,446 - INFO - [1488022160.py.index_documents:1040] - - 当前图像 Faiss 索引中的向量总数: 212
+2025-05-12 19:06:10,447 - INFO - [1488022160.py.index_documents:1041] - - 当前平均 Faiss 索引中的向量总数: 212
+2025-05-12 19:06:10,449 - INFO - [1488022160.py.index_documents:1045] - - 当前 SQLite 数据库中存储的文档元数据记录总数: 218
+2025-05-12 19:06:10,450 - INFO - [1488022160.py.index_documents:1065] - --- 文档索引过程结束 ---
+2025-05-12 19:06:10,451 - INFO - [1488022160.py.<module>:2114] - Index building/loading complete. Current status:
+2025-05-12 19:06:10,452 - INFO - [1488022160.py.<module>:2120] -   - SQLite Database ('multimodal_doc_store.db') document records: 218
+2025-05-12 19:06:10,453 - INFO - [1488022160.py.<module>:2121] -   - Text Faiss Index ('text_vector_index.faiss') vectors: 218
+2025-05-12 19:06:10,454 - INFO - [1488022160.py.<module>:2122] -   - Image Faiss Index ('image_vector_index.faiss') vectors: 212
+2025-05-12 19:06:10,455 - INFO - [1488022160.py.<module>:2123] -   - Mean Faiss Index ('mean_vector_index.faiss') vectors: 212
+2025-05-12 19:06:10,456 - INFO - [1488022160.py.<module>:2139] - --- [Main Flow] Step 2 Complete. ---
+
+2025-05-12 19:06:10,657 - INFO - [1488022160.py.<module>:2146] - --- [Main Flow] Step 3: Initialize Retriever ---
+2025-05-12 19:06:10,658 - INFO - [1488022160.py.__init__:1347] - 开始初始化 Retriever...
+2025-05-12 19:06:10,658 - INFO - [1488022160.py.__init__:1370] -   Retriever 将使用 Indexer 的编码器 (向量维度: 512)。
+2025-05-12 19:06:10,659 - INFO - [1488022160.py.__init__:1387] - Retriever 初始化成功。关联的 Indexer 状态如下:
+2025-05-12 19:06:10,660 - INFO - [1488022160.py.__init__:1388] -     - 文本(Text)索引中向量数: 218
+2025-05-12 19:06:10,660 - INFO - [1488022160.py.__init__:1389] -     - 图像(Image)索引中向量数: 212
+2025-05-12 19:06:10,661 - INFO - [1488022160.py.__init__:1390] -     - 平均(Mean)索引中向量数: 212
+2025-05-12 19:06:10,661 - INFO - [1488022160.py.__init__:1391] - Retriever 初始化完成。我已经准备好根据您的查询进行搜索了。
+2025-05-12 19:06:10,662 - INFO - [1488022160.py.<module>:2170] - --- [Main Flow] Step 3 Complete. ---
+
+2025-05-12 19:06:10,863 - INFO - [1488022160.py.<module>:2177] - --- [Main Flow] Step 4: Initialize Generator (will interact with ZhipuAI API) ---
+2025-05-12 19:06:10,863 - INFO - [1488022160.py.<module>:2191] - Environment variable 'ZHIPUAI_API_KEY' detected. Attempting to initialize Generator...
+2025-05-12 19:06:10,864 - INFO - [1488022160.py.__init__:1700] - 开始初始化 Generator，准备使用 ZhipuAI 模型: glm-4-flash
+2025-05-12 19:06:10,865 - INFO - [1488022160.py.__init__:1715] - 成功获取到 ZhipuAI API Key (来源可能是参数或环境变量)。
+2025-05-12 19:06:11,081 - INFO - [1488022160.py.__init__:1721] - ZhipuAI 客户端已使用模型 'glm-4-flash' 成功初始化。
+2025-05-12 19:06:11,082 - INFO - [1488022160.py.__init__:1731] - Generator 初始化成功完成。我已经准备好与大模型交互，生成答案了。
+2025-05-12 19:06:11,083 - INFO - [1488022160.py.<module>:2199] - --- [Main Flow] Step 4 Complete. ---
+
+2025-05-12 19:06:11,284 - INFO - [1488022160.py.<module>:2206] - --- [Main Flow] Step 5: Execute RAG Query Examples (Retrieve + Generate) ---
+2025-05-12 19:06:11,285 - INFO - [1488022160.py.<module>:2210] - Retriever and Generator are both successfully initialized. Proceeding with example queries...
+2025-05-12 19:06:11,301 - INFO - [1488022160.py.<module>:2255] - Found 212 documents with valid images. Randomly selecting 1 for image/multimodal query examples.
+2025-05-12 19:06:11,302 - INFO - [1488022160.py.<module>:2296] - 
+######################################################################
+>>> Starting Example Queries, Type: [Pure Text Query] (Total in this group: 2) <<<
+######################################################################
+
+2025-05-12 19:06:11,303 - INFO - [1488022160.py.<module>:2334] - 
+--- Processing Query #1 (Type: Pure Text Query - Index in group: 1/2) ---
+2025-05-12 19:06:11,304 - INFO - [1488022160.py.<module>:2336] - Query Description: What is a bandgap voltage reference and its main purpose?
+2025-05-12 19:06:11,305 - INFO - [1488022160.py.<module>:2346] -   -> Input Text for Retriever: 'What is a bandgap voltage reference and its main purpose?'
+2025-05-12 19:06:11,306 - INFO - [1488022160.py.<module>:2352] -   -> Question Text for Generator: 'What is a bandgap voltage reference and its main purpose?'
+2025-05-12 19:06:11,306 - INFO - [1488022160.py.<module>:2355] - ------------------------------
+2025-05-12 19:06:11,308 - INFO - [1488022160.py.<module>:2366] -   Detailed results for this query will be saved to: multimodal_rag_system_output\query_session_results\query_001_TextQuery_What_is_a_bandgap_voltage_reference_and_its_main_p
+2025-05-12 19:06:11,309 - INFO - [1488022160.py.<module>:2390] -   [Retrieval Stage] Calling Retriever.retrieve() method...
+2025-05-12 19:06:11,309 - INFO - [1488022160.py.retrieve:1420] - 开始执行检索流程，目标是获取 Top-2 最相关的文档...
+2025-05-12 19:06:11,310 - INFO - [1488022160.py.retrieve:1436] -     查询类型确定为: 纯文本 (字符串输入)
+2025-05-12 19:06:11,311 - INFO - [1488022160.py.retrieve:1437] -     查询文本内容: 'What is a bandgap voltage reference and its main purpose?'
+2025-05-12 19:06:11,331 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='What is a bandgap voltage refe...')。成功生成的向量: 文本向量。
+2025-05-12 19:06:11,332 - INFO - [1488022160.py.retrieve:1490] -     查询编码完成。
+2025-05-12 19:06:11,333 - INFO - [1488022160.py.retrieve:1517] -     搜索策略: 使用文本查询向量，在 文本(Text)索引 (含 218 个向量) 中搜索。
+2025-05-12 19:06:11,381 - INFO - [1488022160.py.retrieve:1606] -     Faiss 搜索在 '文本(Text)索引' 中完成，初步找到 2 个候选文档的 internal_id。
+2025-05-12 19:06:11,382 - INFO - [1488022160.py.retrieve:1618] -     已成功从数据库中获取了 2 条与 internal_id 对应的文档记录。
+2025-05-12 19:06:11,383 - INFO - [1488022160.py.retrieve:1644] - 检索流程成功完成，最终返回 2 个文档（已按相似度排序）。
+2025-05-12 19:06:11,384 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2217] -     >> Retrieval Result: Found Top-2 relevant documents. Summary:
+2025-05-12 19:06:11,384 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2226] -       1. Document ID: Bandgap40 (Score: 0.8724)
+2025-05-12 19:06:11,385 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2227] -          Text Preview: ': Evidence for Bandgap Reference Circuit Identification:**\n1. **PTAT ...', Associated Image: 'Bandgap40.png'
+2025-05-12 19:06:11,385 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2226] -       2. Document ID: Bandgap31 (Score: 0.8659)
+2025-05-12 19:06:11,386 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2227] -          Text Preview: '**\n\n**Evidence for Bandgap Reference Circuit Identification:**\n\n1....', Associated Image: 'Bandgap31.png'
+2025-05-12 19:06:11,386 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2228] -     ----------------------------------------
+2025-05-12 19:06:11,388 - INFO - [1488022160.py.<module>:2414] -   [Generation Stage] Calling Generator.generate() method (using retrieved context)...
+2025-05-12 19:06:11,389 - INFO - [1488022160.py.generate:1748] - 开始为查询生成最终响应...
+2025-05-12 19:06:11,389 - INFO - [1488022160.py.generate:1749] -   接收到的用户查询: 'What is a bandgap voltage reference and its main purpose?'
+2025-05-12 19:06:11,390 - INFO - [1488022160.py.generate:1750] -   使用 2 个检索到的文档作为生成上下文。
+2025-05-12 19:06:11,390 - INFO - [1488022160.py._build_messages:1910] -     正在将 2 个检索到的文档格式化为 LLM 的上下文...
+2025-05-12 19:06:11,391 - INFO - [1488022160.py.generate:1781] -   - Generator步骤 2: 开始调用 ZhipuAI Chat API (使用模型: glm-4-flash)...
+2025-05-12 19:06:20,057 - INFO - [1488022160.py.generate:1805] -     ZhipuAI API 调用成功。已接收到模型的响应。
+2025-05-12 19:06:20,059 - INFO - [1488022160.py.generate:1823] -       Token 使用情况 -> 输入提示: 1081 tokens, 生成响应: 268 tokens, 总计: 1349 tokens.
+2025-05-12 19:06:20,059 - INFO - [1488022160.py.generate:1860] - LLM 响应生成流程结束。
+2025-05-12 19:06:20,060 - INFO - [1488022160.py.<module>:2420] - 
+  <<< Final Response Generated by LLM for Query #1 >>>
+2025-05-12 19:06:20,061 - INFO - [1488022160.py.<module>:2421] - -----------------------------------
+2025-05-12 19:06:20,061 - INFO - [1488022160.py.<module>:2422] - A bandgap voltage reference is a type of electronic circuit used to generate a stable voltage reference that is independent of temperature variations. Its main purpose is to provide a stable voltage output that can be used as a reference for various electronic measurements and processes.
+
+The key components and functions of a bandgap voltage reference, as described in the provided reference documents, include:
+
+1. **PTAT Voltage Generation:** This involves transistors like Q1 and Q2 with unequal emitter areas that generate a voltage proportional to temperature (ΔVBE).
+
+2. **CTAT Voltage Source:** A transistor like Q3 provides a voltage that decreases linearly with temperature (CTAT voltage).
+
+3. **Voltage Summing:** Components like R1 and R2 combine the PTAT and CTAT voltage components to produce a stable output voltage.
+
+4. **Output Voltage Stability:** The resulting voltage (VREF) is typically around 1.2V and remains stable regardless of temperature and supply variations, which is a characteristic of a bandgap reference.
+
+5. **Feedback Structure:** Current mirrors (M1–M5) ensure proper biasing and stability of the circuit.
+
+In summary, a bandgap voltage reference is designed to generate a stable voltage that remains constant across a wide range of temperatures, making it essential for applications where temperature stability is critical.
+2025-05-12 19:06:20,062 - INFO - [1488022160.py.<module>:2423] - -----------------------------------
+2025-05-12 19:06:20,063 - INFO - [1488022160.py.<module>:2454] - --- Query #1 Processing Complete ---
+2025-05-12 19:06:20,063 - INFO - [1488022160.py.<module>:2458] - 
+...Pausing for 0.5 seconds before next query in this group...
+----------------------------------------------------------------------
+
+2025-05-12 19:06:20,564 - INFO - [1488022160.py.<module>:2334] - 
+--- Processing Query #2 (Type: Pure Text Query - Index in group: 2/2) ---
+2025-05-12 19:06:20,565 - INFO - [1488022160.py.<module>:2336] - Query Description: Explain how the PTAT current is generated and its role in a bandgap circuit.
+2025-05-12 19:06:20,566 - INFO - [1488022160.py.<module>:2346] -   -> Input Text for Retriever: 'Explain how the PTAT current is generated and its role in a bandgap circuit.'
+2025-05-12 19:06:20,566 - INFO - [1488022160.py.<module>:2352] -   -> Question Text for Generator: 'Explain how the PTAT current is generated and its role in a bandgap circuit.'
+2025-05-12 19:06:20,567 - INFO - [1488022160.py.<module>:2355] - ------------------------------
+2025-05-12 19:06:20,567 - INFO - [1488022160.py.<module>:2366] -   Detailed results for this query will be saved to: multimodal_rag_system_output\query_session_results\query_002_TextQuery_Explain_how_the_PTAT_current_is_generated_and_its_
+2025-05-12 19:06:20,568 - INFO - [1488022160.py.<module>:2390] -   [Retrieval Stage] Calling Retriever.retrieve() method...
+2025-05-12 19:06:20,569 - INFO - [1488022160.py.retrieve:1420] - 开始执行检索流程，目标是获取 Top-2 最相关的文档...
+2025-05-12 19:06:20,570 - INFO - [1488022160.py.retrieve:1436] -     查询类型确定为: 纯文本 (字符串输入)
+2025-05-12 19:06:20,571 - INFO - [1488022160.py.retrieve:1437] -     查询文本内容: 'Explain how the PTAT current is generated and its role in a bandgap circuit.'
+2025-05-12 19:06:20,597 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='Explain how the PTAT current i...')。成功生成的向量: 文本向量。
+2025-05-12 19:06:20,598 - INFO - [1488022160.py.retrieve:1490] -     查询编码完成。
+2025-05-12 19:06:20,599 - INFO - [1488022160.py.retrieve:1517] -     搜索策略: 使用文本查询向量，在 文本(Text)索引 (含 218 个向量) 中搜索。
+2025-05-12 19:06:20,600 - INFO - [1488022160.py.retrieve:1606] -     Faiss 搜索在 '文本(Text)索引' 中完成，初步找到 2 个候选文档的 internal_id。
+2025-05-12 19:06:20,601 - INFO - [1488022160.py.retrieve:1618] -     已成功从数据库中获取了 2 条与 internal_id 对应的文档记录。
+2025-05-12 19:06:20,602 - INFO - [1488022160.py.retrieve:1644] - 检索流程成功完成，最终返回 2 个文档（已按相似度排序）。
+2025-05-12 19:06:20,603 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2217] -     >> Retrieval Result: Found Top-2 relevant documents. Summary:
+2025-05-12 19:06:20,603 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2226] -       1. Document ID: Bandgap68 (Score: 0.9006)
+2025-05-12 19:06:20,605 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2227] -          Text Preview: '**\n\nThis circuit can be conclusively identified as a **bandgap refer...', Associated Image: 'Bandgap68.png'
+2025-05-12 19:06:20,605 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2226] -       2. Document ID: Bandgap59 (Score: 0.8943)
+2025-05-12 19:06:20,606 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2227] -          Text Preview: ': This circuit can be considered a bandgap reference circuit because o...', Associated Image: 'Bandgap59.png'
+2025-05-12 19:06:20,607 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2228] -     ----------------------------------------
+2025-05-12 19:06:20,608 - INFO - [1488022160.py.<module>:2414] -   [Generation Stage] Calling Generator.generate() method (using retrieved context)...
+2025-05-12 19:06:20,609 - INFO - [1488022160.py.generate:1748] - 开始为查询生成最终响应...
+2025-05-12 19:06:20,609 - INFO - [1488022160.py.generate:1749] -   接收到的用户查询: 'Explain how the PTAT current is generated and its role in a bandgap circuit.'
+2025-05-12 19:06:20,610 - INFO - [1488022160.py.generate:1750] -   使用 2 个检索到的文档作为生成上下文。
+2025-05-12 19:06:20,610 - INFO - [1488022160.py._build_messages:1910] -     正在将 2 个检索到的文档格式化为 LLM 的上下文...
+2025-05-12 19:06:20,611 - INFO - [1488022160.py.generate:1781] -   - Generator步骤 2: 开始调用 ZhipuAI Chat API (使用模型: glm-4-flash)...
+2025-05-12 19:06:29,499 - INFO - [1488022160.py.generate:1805] -     ZhipuAI API 调用成功。已接收到模型的响应。
+2025-05-12 19:06:29,499 - INFO - [1488022160.py.generate:1823] -       Token 使用情况 -> 输入提示: 1094 tokens, 生成响应: 300 tokens, 总计: 1394 tokens.
+2025-05-12 19:06:29,500 - INFO - [1488022160.py.generate:1860] - LLM 响应生成流程结束。
+2025-05-12 19:06:29,500 - INFO - [1488022160.py.<module>:2420] - 
+  <<< Final Response Generated by LLM for Query #2 >>>
+2025-05-12 19:06:29,501 - INFO - [1488022160.py.<module>:2421] - -----------------------------------
+2025-05-12 19:06:29,502 - INFO - [1488022160.py.<module>:2422] - In a bandgap reference circuit, the PTAT (Proportional To Absolute Temperature) current is generated through the following mechanism:
+
+1. **PTAT Voltage Generation**: The PTAT voltage is typically derived from the voltage differences across the base-emitter junctions of transistors Q1, Q2, and R0-R2. These voltage differences, denoted as \( \Delta V_{BE} \), vary with temperature. By appropriately connecting these transistors and resistors, a voltage that is proportional to the absolute temperature is created.
+
+2. **Role in the Bandgap Circuit**: The PTAT current plays a crucial role in achieving temperature stability in the bandgap reference circuit:
+
+   - **Temperature Compensation**: The PTAT voltage is used to compensate for the temperature-dependent variations in other components of the circuit. It ensures that the circuit's output voltage remains relatively stable over a range of temperatures.
+   
+   - **Stabilizing the Reference Voltage**: The PTAT component helps in balancing out the temperature effects on the reference voltage. In a typical bandgap reference circuit, the PTAT voltage is combined with a CTAT (Constant Temperature Coefficient) voltage to produce a stable reference voltage that is less sensitive to temperature changes.
+
+In summary, the PTAT current in a bandgap circuit is generated by the temperature-dependent voltage differences across specific components, and its primary role is to provide temperature compensation, ensuring that the circuit's output voltage remains stable across a range of temperatures.
+2025-05-12 19:06:29,502 - INFO - [1488022160.py.<module>:2423] - -----------------------------------
+2025-05-12 19:06:29,503 - INFO - [1488022160.py.<module>:2454] - --- Query #2 Processing Complete ---
+2025-05-12 19:06:29,504 - INFO - [1488022160.py.<module>:2461] - 
+######################################################################
+>>> All Example Queries of Type [Pure Text Query] Processed <<<
+######################################################################
+
+2025-05-12 19:06:30,005 - INFO - [1488022160.py.<module>:2296] - 
+######################################################################
+>>> Starting Example Queries, Type: [Pure Image Query] (Total in this group: 1) <<<
+######################################################################
+
+2025-05-12 19:06:30,007 - INFO - [1488022160.py.<module>:2334] - 
+--- Processing Query #3 (Type: Pure Image Query - Index in group: 1/1) ---
+2025-05-12 19:06:30,009 - INFO - [1488022160.py.<module>:2336] - Query Description: PureImageQuery_About_op_amp134.png
+2025-05-12 19:06:30,010 - INFO - [1488022160.py.<module>:2344] -   -> Input Image for Retriever: 'op_amp134.png'
+2025-05-12 19:06:30,012 - INFO - [1488022160.py.<module>:2352] -   -> Question Text for Generator: 'What circuit structure or key concept does this image (filename: op_amp134.png) primarily show? Plea...'
+2025-05-12 19:06:30,012 - INFO - [1488022160.py.<module>:2355] - ------------------------------
+2025-05-12 19:06:30,013 - INFO - [1488022160.py.<module>:2366] -   Detailed results for this query will be saved to: multimodal_rag_system_output\query_session_results\query_003_PureImageQuery_About_op_amp134.png
+2025-05-12 19:06:30,014 - INFO - [1488022160.py.<module>:2390] -   [Retrieval Stage] Calling Retriever.retrieve() method...
+2025-05-12 19:06:30,015 - INFO - [1488022160.py.retrieve:1420] - 开始执行检索流程，目标是获取 Top-2 最相关的文档...
+2025-05-12 19:06:30,015 - INFO - [1488022160.py.retrieve:1460] -     查询类型确定为: 纯图像
+2025-05-12 19:06:30,016 - INFO - [1488022160.py.retrieve:1461] -     查询图像路径: 'op_amp134.png' (文件存在)
+2025-05-12 19:06:30,080 - INFO - [1488022160.py.encode:522] - 编码完成对于 (图像='op_amp134.png')。成功生成的向量: 图像向量。
+2025-05-12 19:06:30,080 - INFO - [1488022160.py.retrieve:1490] -     查询编码完成。
+2025-05-12 19:06:30,081 - INFO - [1488022160.py.retrieve:1528] -     搜索策略: 使用图像查询向量，在 图像(Image)索引 (含 212 个向量) 中搜索。
+2025-05-12 19:06:30,082 - INFO - [1488022160.py.retrieve:1606] -     Faiss 搜索在 '图像(Image)索引' 中完成，初步找到 2 个候选文档的 internal_id。
+2025-05-12 19:06:30,083 - INFO - [1488022160.py.retrieve:1618] -     已成功从数据库中获取了 2 条与 internal_id 对应的文档记录。
+2025-05-12 19:06:30,084 - INFO - [1488022160.py.retrieve:1644] - 检索流程成功完成，最终返回 2 个文档（已按相似度排序）。
+2025-05-12 19:06:30,084 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2217] -     >> Retrieval Result: Found Top-2 relevant documents. Summary:
+2025-05-12 19:06:30,085 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2226] -       1. Document ID: op_amp134 (Score: 1.0000)
+2025-05-12 19:06:30,086 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2227] -          Text Preview: '"Based on the following evidence, the circuit represented by the image...', Associated Image: 'op_amp134.png'
+2025-05-12 19:06:30,086 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2226] -       2. Document ID: Comparator53 (Score: 0.9193)
+2025-05-12 19:06:30,087 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2227] -          Text Preview: '**
+
+### **Comparator Confirmation**
+
+Based on the circuit structure an...', Associated Image: 'Comparator53.png'
+2025-05-12 19:06:30,087 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2228] -     ----------------------------------------
+2025-05-12 19:06:30,089 - INFO - [1488022160.py.<module>:2414] -   [Generation Stage] Calling Generator.generate() method (using retrieved context)...
+2025-05-12 19:06:30,089 - INFO - [1488022160.py.generate:1748] - 开始为查询生成最终响应...
+2025-05-12 19:06:30,090 - INFO - [1488022160.py.generate:1749] -   接收到的用户查询: 'What circuit structure or key concept does this image (filename: op_amp134.png) primarily show? Plea...'
+2025-05-12 19:06:30,090 - INFO - [1488022160.py.generate:1750] -   使用 2 个检索到的文档作为生成上下文。
+2025-05-12 19:06:30,091 - INFO - [1488022160.py._build_messages:1910] -     正在将 2 个检索到的文档格式化为 LLM 的上下文...
+2025-05-12 19:06:30,092 - INFO - [1488022160.py.generate:1781] -   - Generator步骤 2: 开始调用 ZhipuAI Chat API (使用模型: glm-4-flash)...
+2025-05-12 19:06:36,576 - INFO - [1488022160.py.generate:1805] -     ZhipuAI API 调用成功。已接收到模型的响应。
+2025-05-12 19:06:36,576 - INFO - [1488022160.py.generate:1823] -       Token 使用情况 -> 输入提示: 1062 tokens, 生成响应: 211 tokens, 总计: 1273 tokens.
+2025-05-12 19:06:36,577 - INFO - [1488022160.py.generate:1860] - LLM 响应生成流程结束。
+2025-05-12 19:06:36,578 - INFO - [1488022160.py.<module>:2420] - 
+  <<< Final Response Generated by LLM for Query #3 >>>
+2025-05-12 19:06:36,579 - INFO - [1488022160.py.<module>:2421] - -----------------------------------
+2025-05-12 19:06:36,579 - INFO - [1488022160.py.<module>:2422] - The image 'op_amp134.png' primarily shows a circuit that is identified as an operational amplifier (op-amp). The key concepts and structure of this circuit are as follows, based on the text description in the associated document:
+
+1. **Differential Input Stage**: The circuit includes a differential input stage formed by transistors M4 and M5. This stage is crucial for an operational amplifier as it receives inputs V⁻ and V⁺ respectively. The differential pair is essential for an op-amp, as it allows the amplifier to amplify the voltage difference between two inputs.
+
+2. **Current Mirror Structure**: A current mirror structure is implemented using transistors M6 and M7. This structure serves as an active load for the differential pair. It converts differential currents into a single-ended voltage signal. This feature is significant in enabling high gain, which is an essential characteristic of the internal architecture of an op-amp.
+
+These points highlight the fundamental components and functions of the operational amplifier circuit depicted in 'op_amp134.png'.
+2025-05-12 19:06:36,579 - INFO - [1488022160.py.<module>:2423] - -----------------------------------
+2025-05-12 19:06:36,580 - INFO - [1488022160.py.<module>:2454] - --- Query #3 Processing Complete ---
+2025-05-12 19:06:36,581 - INFO - [1488022160.py.<module>:2461] - 
+######################################################################
+>>> All Example Queries of Type [Pure Image Query] Processed <<<
+######################################################################
+
+2025-05-12 19:06:37,082 - INFO - [1488022160.py.<module>:2296] - 
+######################################################################
+>>> Starting Example Queries, Type: [Multimodal Query] (Total in this group: 1) <<<
+######################################################################
+
+2025-05-12 19:06:37,084 - INFO - [1488022160.py.<module>:2334] - 
+--- Processing Query #4 (Type: Multimodal Query - Index in group: 1/1) ---
+2025-05-12 19:06:37,085 - INFO - [1488022160.py.<module>:2336] - Query Description: MultimodalQuery_ExplainImage_op_amp134.png
+2025-05-12 19:06:37,086 - INFO - [1488022160.py.<module>:2342] -   -> Input Text for Retriever: 'Combining the document content and this image (filename: op_amp134.png), please ...'
+2025-05-12 19:06:37,088 - INFO - [1488022160.py.<module>:2344] -   -> Input Image for Retriever: 'op_amp134.png'
+2025-05-12 19:06:37,089 - INFO - [1488022160.py.<module>:2352] -   -> Question Text for Generator: 'Combining the document content and this image (filename: op_amp134.png), please explain the working ...'
+2025-05-12 19:06:37,089 - INFO - [1488022160.py.<module>:2355] - ------------------------------
+2025-05-12 19:06:37,093 - INFO - [1488022160.py.<module>:2366] -   Detailed results for this query will be saved to: multimodal_rag_system_output\query_session_results\query_004_MultimodalQuery_ExplainImage_op_amp134.png
+2025-05-12 19:06:37,094 - INFO - [1488022160.py.<module>:2390] -   [Retrieval Stage] Calling Retriever.retrieve() method...
+2025-05-12 19:06:37,094 - INFO - [1488022160.py.retrieve:1420] - 开始执行检索流程，目标是获取 Top-2 最相关的文档...
+2025-05-12 19:06:37,095 - INFO - [1488022160.py.retrieve:1453] -     查询类型确定为: 多模态
+2025-05-12 19:06:37,095 - INFO - [1488022160.py.retrieve:1454] -     查询文本部分: 'Combining the document content and this image (fil...'
+2025-05-12 19:06:37,095 - INFO - [1488022160.py.retrieve:1455] -     查询图像部分: 'op_amp134.png'
+2025-05-12 19:06:37,192 - INFO - [1488022160.py.encode:522] - 编码完成对于 (文本='Combining the document content...', 图像='op_amp134.png')。成功生成的向量: 文本向量, 图像向量, 平均向量。
+2025-05-12 19:06:37,193 - INFO - [1488022160.py.retrieve:1490] -     查询编码完成。
+2025-05-12 19:06:37,194 - INFO - [1488022160.py.retrieve:1539] -     搜索策略: 使用平均查询向量，在 平均(Mean)索引 (含 212 个向量) 中搜索。
+2025-05-12 19:06:37,194 - INFO - [1488022160.py.retrieve:1606] -     Faiss 搜索在 '平均(Mean)索引' 中完成，初步找到 2 个候选文档的 internal_id。
+2025-05-12 19:06:37,196 - INFO - [1488022160.py.retrieve:1618] -     已成功从数据库中获取了 2 条与 internal_id 对应的文档记录。
+2025-05-12 19:06:37,196 - INFO - [1488022160.py.retrieve:1644] - 检索流程成功完成，最终返回 2 个文档（已按相似度排序）。
+2025-05-12 19:06:37,197 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2217] -     >> Retrieval Result: Found Top-2 relevant documents. Summary:
+2025-05-12 19:06:37,197 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2226] -       1. Document ID: Comparator9 (Score: 0.9221)
+2025-05-12 19:06:37,198 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2227] -          Text Preview: '**
+
+#### **Evidence the Circuit is a Comparator:**
+
+1. **Differential ...', Associated Image: 'Comparator9.png'
+2025-05-12 19:06:37,198 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2226] -       2. Document ID: Comparator73 (Score: 0.9204)
+2025-05-12 19:06:37,199 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2227] -          Text Preview: '**
+
+Based on the structural and functional analysis, the circuit is co...', Associated Image: 'Comparator73.png'
+2025-05-12 19:06:37,200 - INFO - [1488022160.py.log_retrieved_docs_summary_for_main_process:2228] -     ----------------------------------------
+2025-05-12 19:06:37,202 - INFO - [1488022160.py.<module>:2414] -   [Generation Stage] Calling Generator.generate() method (using retrieved context)...
+2025-05-12 19:06:37,202 - INFO - [1488022160.py.generate:1748] - 开始为查询生成最终响应...
+2025-05-12 19:06:37,203 - INFO - [1488022160.py.generate:1749] -   接收到的用户查询: 'Combining the document content and this image (filename: op_amp134.png), please explain the working ...'
+2025-05-12 19:06:37,204 - INFO - [1488022160.py.generate:1750] -   使用 2 个检索到的文档作为生成上下文。
+2025-05-12 19:06:37,204 - INFO - [1488022160.py._build_messages:1910] -     正在将 2 个检索到的文档格式化为 LLM 的上下文...
+2025-05-12 19:06:37,205 - INFO - [1488022160.py.generate:1781] -   - Generator步骤 2: 开始调用 ZhipuAI Chat API (使用模型: glm-4-flash)...
+2025-05-12 19:06:41,095 - INFO - [1488022160.py.generate:1805] -     ZhipuAI API 调用成功。已接收到模型的响应。
+2025-05-12 19:06:41,097 - INFO - [1488022160.py.generate:1823] -       Token 使用情况 -> 输入提示: 1121 tokens, 生成响应: 156 tokens, 总计: 1277 tokens.
+2025-05-12 19:06:41,098 - INFO - [1488022160.py.generate:1860] - LLM 响应生成流程结束。
+2025-05-12 19:06:41,099 - INFO - [1488022160.py.<module>:2420] - 
+  <<< Final Response Generated by LLM for Query #4 >>>
+2025-05-12 19:06:41,100 - INFO - [1488022160.py.<module>:2421] - -----------------------------------
+2025-05-12 19:06:41,101 - INFO - [1488022160.py.<module>:2422] - 根据提供的参考文档和图片文件名 "op_amp134.png"，我无法找到具体的文档内容或描述来解释这个电路的工作原理、关键特征或设计考虑。文档中只提到了 "Comparator9.png" 和 "Comparator73.png"，而没有提及 "op_amp134.png"。因此，根据现有的信息，我无法提供关于 "op_amp134.png" 电路的详细解释。
+
+根据参考文档 1 和参考文档 2，我们可以了解到比较器电路的一般结构和功能，但这些都不能直接应用于 "op_amp134.png" 这张图片。为了回答关于 "op_amp134.png" 电路的问题，我们需要该电路的具体描述或相关文档信息。目前，根据提供的参考文档，我无法找到回答该问题所需的信息。
+2025-05-12 19:06:41,101 - INFO - [1488022160.py.<module>:2423] - -----------------------------------
+2025-05-12 19:06:41,102 - INFO - [1488022160.py.<module>:2454] - --- Query #4 Processing Complete ---
+2025-05-12 19:06:41,103 - INFO - [1488022160.py.<module>:2461] - 
+######################################################################
+>>> All Example Queries of Type [Multimodal Query] Processed <<<
+######################################################################
+
+2025-05-12 19:06:41,603 - INFO - [1488022160.py.<module>:2475] - --- [Main Flow] Step 5 (RAG Query Examples) Complete. ---
+
+2025-05-12 19:06:41,605 - INFO - [1488022160.py.<module>:2481] - --- [Main Flow] Step 6: Cleanup and Close System Resources ---
+2025-05-12 19:06:41,607 - INFO - [1488022160.py.close:1654] - 开始关闭 Retriever 实例...
+2025-05-12 19:06:41,608 - INFO - [1488022160.py.close:1656] - Retriever 实例关闭完成。
+2025-05-12 19:06:41,609 - INFO - [1488022160.py.close:1992] - 开始关闭 Generator 实例...
+2025-05-12 19:06:41,609 - INFO - [1488022160.py.close:1995] - Generator 实例关闭完成。
+2025-05-12 19:06:41,610 - INFO - [1488022160.py.close:1301] - 开始关闭 Indexer 实例...
+2025-05-12 19:06:41,610 - INFO - [1488022160.py.save_indices:1234] - 开始尝试将所有 Faiss 索引保存到磁盘文件...
+2025-05-12 19:06:41,614 - INFO - [1488022160.py._save_single_index:1282] -   成功：'文本(Text)' Faiss 索引 (包含 218 个向量) 已保存到: multimodal_rag_system_output\data_storage\vector_indices\text_vector_index.faiss
+2025-05-12 19:06:41,616 - INFO - [1488022160.py._save_single_index:1282] -   成功：'图像(Image)' Faiss 索引 (包含 212 个向量) 已保存到: multimodal_rag_system_output\data_storage\vector_indices\image_vector_index.faiss
+2025-05-12 19:06:41,617 - INFO - [1488022160.py._save_single_index:1282] -   成功：'平均(Mean)' Faiss 索引 (包含 212 个向量) 已保存到: multimodal_rag_system_output\data_storage\vector_indices\mean_vector_index.faiss
+2025-05-12 19:06:41,618 - INFO - [1488022160.py.save_indices:1252] - 所有 Faiss 索引的保存操作已完成（或已跳过空索引/不存在的索引）。
+2025-05-12 19:06:41,618 - INFO - [1488022160.py.close:1304] - Indexer 实例关闭完成。所有 Faiss 索引已尝试保存。
+2025-05-12 19:06:41,619 - INFO - [1488022160.py.<module>:2507] - --- [Main Flow] System resource cleanup and closing process complete. ---
+
+2025-05-12 19:06:41,619 - INFO - [1488022160.py.<module>:2509] - 
+================================================================================
+2025-05-12 19:06:41,620 - INFO - [1488022160.py.<module>:2510] - ========= Multimodal RAG System Example Program Execution Finished =========
+2025-05-12 19:06:41,621 - INFO - [1488022160.py.<module>:2511] - All output (logs, database, indices, query results) saved to the fixed top-level directory:
+2025-05-12 19:06:41,621 - INFO - [1488022160.py.<module>:2512] -   d:\ALL IN AI\多模态RAG\IDT_RAG\MultimodalRAG\multimodal_rag_system_output
+2025-05-12 19:06:41,622 - INFO - [1488022160.py.<module>:2513] - Key subdirectory overview:
+2025-05-12 19:06:41,622 - INFO - [1488022160.py.<module>:2514] -   - multimodal_rag_system_output\logs/
+2025-05-12 19:06:41,623 - INFO - [1488022160.py.<module>:2515] -   - multimodal_rag_system_output\data_storage\database/
+2025-05-12 19:06:41,624 - INFO - [1488022160.py.<module>:2516] -   - multimodal_rag_system_output\data_storage\vector_indices/
+2025-05-12 19:06:41,624 - INFO - [1488022160.py.<module>:2517] -   - multimodal_rag_system_output\query_session_results/
+2025-05-12 19:06:41,625 - INFO - [1488022160.py.<module>:2518] -     (Under query_session_results/, each 'query_XXX_...' subdirectory contains detailed input/output for a single query)
+2025-05-12 19:06:41,625 - WARNING - [1488022160.py.<module>:2519] - REMINDER: Since the top-level directory 'multimodal_rag_system_output' is fixed, running the script again with the same identifier will OVERWRITE its contents.
+2025-05-12 19:06:41,626 - INFO - [1488022160.py.<module>:2520] - ================================================================================
+

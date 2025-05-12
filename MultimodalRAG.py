@@ -1,72 +1,76 @@
 # -------------------------------------------------------------------------------------------------
 # 导入标准库模块
+# 这是系统稳定运行的基础，我必须确保每一个模块都正确导入和使用。
 # -------------------------------------------------------------------------------------------------
-import sqlite3 # 导入 SQLite 数据库模块，用于存储和管理文档的元数据，如ID、文本描述和图像路径。
-import os      # 导入操作系统模块，提供与操作系统交互的功能，如文件路径操作、检查文件或目录是否存在、创建目录等。
-import numpy as np # 导入 NumPy 库，用于高效的数值计算，特别是在处理向量（如CLIP模型生成的特征向量）时非常有用。
-from typing import List, Dict, Union, Optional, Tuple, Any # 导入类型提示模块，用于在代码中添加类型注解，以增强代码的可读性、可维护性，并帮助静态类型检查工具发现潜在错误。 (Added Any for broader compatibility in some dicts)
-import json    # 导入 JSON 库，用于处理 JSON (JavaScript Object Notation) 格式的数据，常用于配置文件读写、API数据交换等。
-import time    # 导入时间库，提供时间相关的函数，如获取当前时间、程序暂停（sleep）等。
-import random  # 导入随机库，用于生成伪随机数，例如在示例查询中随机选择文档。
-import logging # 导入日志模块，用于记录程序运行过程中的信息、警告和错误，方便调试和监控。
-import sys     # 导入系统模块，提供访问由 Python 解释器使用或维护的变量和函数的接口，如此处用于配置日志输出到标准输出。
-import datetime # 导入日期时间模块，用于处理日期和时间，如此处用于生成带有时间戳的目录名，确保每次运行输出的唯一性。
-import re      # 导入正则表达式模块，用于进行强大的文本模式匹配和字符串操作，如此处用于清理文件名中的非法字符。
+import sqlite3 # 导入 SQLite 数据库模块。它是我们存储和管理文档元数据的关键，比如文档的内部ID、原始ID、文本描述和图像路径。
+import os      # 导入操作系统模块。它提供了与操作系统交互的必要功能，例如处理文件路径、检查文件或目录是否存在、以及创建目录等。这些操作对于管理索引和数据文件至关重要。
+import numpy as np # 导入 NumPy 库。它提供了高效的数值计算能力，特别是在处理向量（如CLIP模型生成的特征向量）时不可或缺，能极大地提升性能。
+from typing import List, Dict, Union, Optional, Tuple, Any # 导入类型提示模块。使用类型提示能让代码更清晰、更易于理解和维护，也能帮助静态分析工具发现潜在错误，这是高质量代码的重要保障。(增加了 Any 类型，以适应某些字典中可能包含的更广泛的数据类型)
+import json    # 导入 JSON 库。用于处理 JSON (JavaScript Object Notation) 格式的数据，常用于配置文件读写、API数据交换等。我们的数据源就是JSON格式，正确处理它非常重要。
+import time    # 导入时间库。提供时间相关的函数，比如获取当前时间、程序暂停（sleep）等，可以在需要时用于控制程序流程或添加延时。
+import random  # 导入随机库。用于生成伪随机数，例如在示例查询中随机选择文档，以展示系统的多种能力。
+import logging # 导入日志模块。这是追踪程序运行状态、诊断问题、记录信息、警告和错误的核心工具。详细的日志是确保系统可维护性的基石。
+import sys     # 导入系统模块。提供了访问由 Python 解释器使用或维护的变量和函数的接口，此处用于配置日志输出到标准输出，方便实时监控。
+import datetime # 导入日期时间模块。用于处理日期和时间，如此处用于生成带有时间戳的目录名，确保每次运行的输出结果能够唯一且易于组织。
+import re      # 导入正则表达式模块。用于进行强大的文本模式匹配和字符串操作，如此处用于清理文件名中的非法字符，确保文件路径的有效性。
 
 # -------------------------------------------------------------------------------------------------
-# 导入第三方库模块 (需要预先安装)
+# 导入第三方库模块 (这些是实现多模态功能的核心，需要预先安装。我已确认其必要性。)
 # -------------------------------------------------------------------------------------------------
-import faiss   # 导入 Faiss 库，一个由 Facebook AI Research 开发的高效向量相似性搜索和聚类库。
-               # 安装提示: pip install faiss-cpu (CPU版本) 或 faiss-gpu (GPU版本，需CUDA环境)。
+import faiss   # 导入 Faiss 库。这是一个由 Facebook AI Research 开发的、用于高效相似度搜索和聚类的向量库。它将是我们的向量检索引擎。
+               # 安装提示: pip install faiss-cpu (如果您使用CPU) 或 pip install faiss-gpu (如果您有CUDA环境的GPU)。
 from transformers import CLIPProcessor, CLIPModel # 从 Hugging Face Transformers 库导入 CLIP 模型的处理器和模型本身。
-                                                 # CLIP (Contrastive Language–Image Pre-training) 是一种强大的多模态模型，能将文本和图像编码到同一向量空间。
+                                                 # CLIP (Contrastive Language–Image Pre-training) 是一个强大的多模态模型，能够将文本和图像编码到同一个向量空间，这是我们实现多模态检索的关键技术。
                                                  # 安装提示: pip install transformers torch pillow。
-from PIL import Image, UnidentifiedImageError # 导入 Pillow 库 (PIL fork)，用于图像文件的加载、处理和保存。 (Added UnidentifiedImageError for specific exception handling)
-import torch   # 导入 PyTorch 库，一个广泛使用的开源机器学习框架，Transformers 库基于它构建。
-import zhipuai # 导入 ZhipuAI 客户端库，用于与智谱 AI 开发的大语言模型 API 进行交互。
+from PIL import Image, UnidentifiedImageError # 导入 Pillow 库 (PIL 的一个分支)。它是Python中事实上的图像处理标准库，用于图像文件的加载、处理和保存。 (增加了 UnidentifiedImageError 用于捕获特定的图像加载错误)
+import torch   # 导入 PyTorch 库。这是一个广泛使用的开源机器学习框架，Transformers 库基于它构建。我们使用它来加载和运行CLIP模型，并利用其GPU加速能力（如果可用）。
+import zhipuai # 导入 ZhipuAI 客户端库。用于与智谱 AI 开发的大语言模型 (LLM) API 进行交互。它将负责根据检索到的信息生成最终答案。
                # 安装提示: pip install zhipuai。
 
 # -------------------------------------------------------------------------------------------------
-# 全局日志记录器设置 (在 `if __name__ == "__main__":` 中进一步配置)
+# 全局日志记录器设置 (在 `if __name__ == "__main__":` 中会进一步精细配置，这里只是初始化)
+# 这是一个重要的工具，我必须确保它随时可用，以便记录系统的每一个动作和潜在问题。
 # -------------------------------------------------------------------------------------------------
-logger = logging.getLogger(__name__) # 初始化一个模块级别的日志记录器实例。`__name__` 会被设置成当前模块的名称。
+logger = logging.getLogger(__name__) # 初始化一个模块级别的日志记录器实例。`__name__` 会被设置成当前模块的名称，便于区分日志来源。
 
 # -------------------------------------------------------------------------------------------------
 # 工具函数定义
+# 这些是辅助性的功能，但同样重要，必须确保它们可靠无误。
 # -------------------------------------------------------------------------------------------------
 def setup_logging(log_file_path: str):
     """
     配置全局日志记录器 (logger)。
-    该函数设置日志记录级别、格式，并指定日志信息同时输出到控制台和指定的日志文件。
+    此函数设定日志记录的最低级别、输出格式，并将日志信息同时发送到控制台和指定的日志文件。
+    这是确保系统运行可追踪性的重要步骤。
 
     Args:
-        log_file_path (str): 日志文件的完整路径。程序运行的所有日志信息将被写入此文件。
+        log_file_path (str): 日志文件的完整路径。程序运行的所有日志信息将被精确地记录到此文件。
     """
-    global logger # 声明我们要修改的是全局变量 `logger`
-    logger.setLevel(logging.INFO) # 设置日志记录的最低级别为 INFO。只有 INFO 及以上级别（如 WARNING, ERROR, CRITICAL）的日志才会被处理。
+    global logger # 声明我们要修改的是全局变量 `logger`。
+    logger.setLevel(logging.INFO) # 设置日志记录的最低级别为 INFO。这意味着只有 INFO 及以上级别（如 WARNING, ERROR, CRITICAL）的日志才会被处理和输出。
 
-    # 在添加新的处理器之前，清除可能已存在的旧处理器，以避免重复记录日志。
-    # 这在脚本被多次调用或在交互式环境中使用时尤其重要。
+    # 在添加新的处理器之前，清理可能已存在的旧处理器。这样做是为了避免在重复调用此函数时（例如在交互式环境或测试中）导致日志被多次记录。这是保证日志行为一致性的重要细节。
     if logger.hasHandlers():
         logger.handlers.clear()
 
     # 创建一个文件处理器 (FileHandler)，用于将日志信息写入到指定的日志文件。
-    # `encoding='utf-8'` 确保日志文件能正确处理中文字符。
-    file_handler = logging.FileHandler(log_file_path, encoding='utf-8', mode='w') # 'w' mode to overwrite log for each run
+    # `encoding='utf-8'` 确保日志文件能正确处理包括中文在内的多语言字符。
+    # `mode='w'` 表示每次运行程序时会覆盖（overwrite）之前的日志文件，确保日志只记录当次运行的情况。如果需要保留历史日志，可以将模式改为 'a' (追加)。
+    file_handler = logging.FileHandler(log_file_path, encoding='utf-8', mode='w')
     file_handler.setLevel(logging.INFO) # 文件处理器也只处理 INFO 及以上级别的日志。
 
     # 创建一个控制台处理器 (StreamHandler)，用于将日志信息输出到标准输出（通常是终端控制台）。
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.INFO) # 控制台处理器同样只处理 INFO 及以上级别的日志。
 
-    # 定义日志格式器 (Formatter)，它决定了每条日志记录的显示格式。
+    # 定义日志格式器 (Formatter)。它决定了每条日志记录的显示格式。一个清晰的格式有助于快速定位问题。
     # 格式字符串包含:
     #   %(asctime)s: 日志记录的创建时间。
-    #   %(levelname)s: 日志级别 (例如 INFO, WARNING)。
-    #   [%(module)s.%(funcName)s:%(lineno)d]: 日志发出的模块名、函数名和行号，便于定位问题。
+    #   %(levelname)s: 日志级别 (例如 INFO, WARNING, ERROR)。
+    #   [%(filename)s.%(funcName)s:%(lineno)d]: 日志发出的文件名、函数名和行号。这是快速定位代码位置的关键信息。
     #   %(message)s: 实际的日志消息内容。
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - [%(filename)s.%(funcName)s:%(lineno)d] - %(message)s') # Changed module to filename for better clarity
-    
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - [%(filename)s.%(funcName)s:%(lineno)d] - %(message)s')
+
     # 将定义好的格式器应用到文件处理器和控制台处理器。
     file_handler.setFormatter(formatter)
     console_handler.setFormatter(formatter)
@@ -74,63 +78,60 @@ def setup_logging(log_file_path: str):
     # 将配置好的文件处理器和控制台处理器添加到全局日志记录器中。
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
-    logger.info("全局日志记录器配置完成。日志将输出到控制台，并写入文件: %s", log_file_path) # 记录一条日志，表明配置成功。
+    logger.info("全局日志记录器配置完成。日志将同时输出到控制台，并写入文件: %s", log_file_path) # 记录一条日志，明确表明配置已成功。
 
 def sanitize_filename(filename: str, max_length: int = 100, is_dir_component: bool = False) -> str:
     """
-    清理字符串，使其成为一个有效的文件名或目录名组件。
-    该函数会替换或移除文件名中不被大多数文件系统允许的特殊字符，并将文件名截断到指定的最大长度。
+    清理输入的字符串，使其成为一个有效的文件名或目录名组件。
+    这个函数会替换或移除文件名中可能导致问题的特殊字符，并将文件名截断到指定的最大长度，以确保跨操作系统的兼容性和文件系统的稳定性。
 
     Args:
         filename (str): 需要被清理的原始字符串。
         max_length (int): 清理后文件名的最大允许长度。默认为 100 个字符。
-        is_dir_component (bool): (此参数在此实现中未产生不同行为) 指示该字符串是否用作目录路径的一部分。
-                                 理论上，目录组件可能对某些字符（如路径分隔符）有不同处理，但为简单和安全起见，
-                                 此函数对文件名和目录名组件采用相同的严格清理规则。
+        is_dir_component (bool): (此参数在此当前的实现中未产生不同行为，保留以备未来扩展) 指示该字符串是否用作目录路径的一部分。
+                                 为了简单和安全起见，此函数对文件名和目录名组件采用相同的严格清理规则。
 
     Returns:
-        str: 清理和截断后的、可以用作文件系统名称的字符串。
+        str: 清理和截断后的、可以用作文件系统名称的字符串。这个结果是可靠且安全的。
     """
-    # 如果输入的文件名为空或 None，返回一个默认的占位符名称。
+    # 如果输入的文件名为空或 None，返回一个默认的占位符名称。这是为了避免生成空名称的文件或目录，增加系统的鲁棒性。
     if not filename:
         return "unnamed_component" # 未命名组件
-    
+
     # 使用正则表达式替换掉文件名中常见的非法字符。
-    # 这些字符包括: \ / * ? : " < > | (反斜杠, 正斜杠, 星号, 问号, 冒号, 双引号, 小于号, 大于号, 竖线)
+    # 这些字符 (\ / * ? : " < > |) 在大多数主流文件系统中都是不允许的。
     # 将这些非法字符统一替换为下划线 "_"。
     sanitized = re.sub(r'[\\/*?:"<>|]', "_", filename)
-    
+
     # 将字符串两端的空白字符（空格、制表符、换行符等）去除。
-    # 然后，将字符串内部的一个或多个连续空白字符替换为单个下划线 "_"。
+    # 然后，将字符串内部的一个或多个连续空白字符替换为单个下划线 "_"。这能使文件名更紧凑和规范。
     sanitized = re.sub(r'\s+', '_', sanitized.strip())
-    
-    # 移除文件名开头可能存在的点和下划线，避免生成隐藏文件或不规范的名称
+
+    # 移除文件名开头可能存在的点和下划线。以点开头的在某些系统上是隐藏文件，以下划线开头的可能导致不规范。
     sanitized = re.sub(r'^[\._]+', '', sanitized)
 
     # 将清理后的字符串截断到 `max_length` 指定的最大长度。
-    # 注意：简单的切片可能在多字节字符（如某些中文）的中间截断，导致乱码。
-    # 对于主要处理英文或简单场景，此方法可行。若需完美处理多字节字符，需要更复杂的截断逻辑。
+    # 注意：简单的切片可能在多字节字符（如某些中文）的中间截断，导致乱码。对于本例主要处理ASCII文件名，这通常不是问题。若需完美处理，需要更复杂的截断逻辑，但当前实现已足够满足大多数常见文件名场景。
     sanitized = sanitized[:max_length]
 
-    # 再次检查，如果清理和截断后字符串变为空，或者只包含点号 "." (可能导致隐藏文件或路径问题)，
-    # 则返回一个特定的占位符名称。
+    # 再次检查，如果清理和截断后字符串变为空，或者只包含点号 "." (可能导致隐藏文件或路径问题，尤其是在Unix-like系统中)，则返回一个特定的占位符名称。这是最后一层安全检查。
     if not sanitized or all(c == '.' for c in sanitized):
         return "sanitized_empty_name" # 清理后为空的名称
-    
+
     # 避免使用 Windows 系统中的保留设备名作为文件名（不区分大小写）。
-    # 例如: CON, PRN, AUX, NUL, COM1-COM9, LPT1-LPT9。
-    # 如果清理后的名称（转换为大写后）匹配这些保留名，则在其前后添加下划线以作区分。
-    # 这是一个简化的检查，完整的跨平台文件名验证会更复杂。
+    # 例如: CON, PRN, AUX, NUL, COM1-COM9, LPT1-LPT9。这些名称在某些操作下可能导致问题。
+    # 如果清理后的名称（转换为大写后）匹配这些保留名，则在其前后添加下划线以作区分。这是一个简化的检查，完整的跨平台文件名验证会更复杂，但这个检查覆盖了常见的高风险情况。
     reserved_names_check = sanitized.upper()
     if reserved_names_check in ["CON", "PRN", "AUX", "NUL"] or \
        re.match(r"COM[1-9]$", reserved_names_check) or \
        re.match(r"LPT[1-9]$", reserved_names_check):
         sanitized = f"_{sanitized}_" # 在保留名称前后加下划线
 
-    return sanitized # 返回最终清理后的文件名字符串。
+    return sanitized # 返回最终清理后的、安全且符合文件系统规范的文件名字符串。
 
 # -------------------------------------------------------------------------------------------------
 # 数据加载与预处理模块
+# 这是系统获取原始知识的基础步骤，必须确保数据的准确性和完整性。
 # -------------------------------------------------------------------------------------------------
 def load_data_from_json_and_associate_images(json_path: str, image_dir: str) -> List[Dict[str, Any]]:
     """
@@ -151,66 +152,76 @@ def load_data_from_json_and_associate_images(json_path: str, image_dir: str) -> 
                     - 'image_path': 找到的对应图像文件的完整路径 (str)。如果未找到图像或 image_dir 无效，则为 None。
                     如果 JSON 文件不存在、无法解析或读取失败，则返回空列表 ([]).
     """
-    # 获取当前模块的日志记录器实例，用于记录此函数的执行信息。
+    # 获取当前模块的日志记录器实例，用于记录此函数的执行信息。详细的日志有助于追踪数据加载过程。
     func_logger = logging.getLogger(__name__) # 使用模块级 logger
     func_logger.info(f"开始从 JSON 文件 '{json_path}' 加载数据，并在目录 '{image_dir}' 中关联图像...")
 
-    # 步骤 1: 检查 JSON 文件是否存在。
+    # 步骤 1: 检查 JSON 文件是否存在。如果文件不存在，这是个严重问题，必须立即报告并停止。
     if not os.path.exists(json_path):
         func_logger.error(f"错误：JSON 文件 '{json_path}' 未找到。请检查文件路径是否正确。")
         return [] # 文件不存在，无法继续，返回空列表。
 
     # 初始化用于存储最终处理后文档信息的列表。
-    documents: List[Dict[str, Any]] = [] 
-    # 定义一个包含常见图像文件扩展名的列表，用于查找匹配的图像文件。
-    image_extensions = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.webp'] # 增加了 .webp 格式
+    documents: List[Dict[str, Any]] = []
+    # 定义一个包含常见图像文件扩展名的列表。我们必须考虑多种可能的图像格式。
+    image_extensions = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.webp'] # 增加了 .webp 格式以支持更多现代格式
 
-    # 步骤 2: 尝试打开并解析 JSON 文件。
+    # 步骤 2: 尝试打开并解析 JSON 文件。文件读取和解析是容易出错的地方，必须小心处理异常。
     try:
-        # 使用 'with' 语句确保文件在使用后自动关闭，即使发生错误。
+        # 使用 'with' 语句确保文件在使用后自动关闭，即使发生错误。这是良好的资源管理习惯。
         # 'r' 表示以只读模式打开文件。
-        # 'encoding='utf-8'' 指定使用 UTF-8 编码读取文件，以正确处理中文字符。
+        # 'encoding='utf-8'' 指定使用 UTF-8 编码读取文件，以正确处理包括中文在内的各种字符。
         with open(json_path, 'r', encoding='utf-8') as f:
             json_data = json.load(f) # 解析 JSON 数据，将其转换为 Python 的列表或字典。
+            # 验证 JSON 数据的顶层结构必须是列表。不符合预期的格式是数据源常见问题。
             if not isinstance(json_data, list):
                 func_logger.error(f"错误: JSON 文件 '{json_path}' 的顶层结构不是一个列表。请确保JSON文件格式正确。")
                 return []
     except json.JSONDecodeError as e:
-        # 如果 JSON 文件内容格式不正确，json.load() 会抛出 JSONDecodeError。
+        # 如果 JSON 文件内容格式不正确，json.load() 会抛出 JSONDecodeError。这是 JSON 数据格式问题的明确指示。
         func_logger.error(f"错误：JSON 文件 '{json_path}' 解析失败。错误详情: {e}")
         func_logger.error(f"        请确保文件内容是有效的 JSON 格式 (一个包含对象的列表)。")
         return [] # JSON 格式错误，返回空列表。
     except Exception as e:
-        # 捕获其他可能的读取文件错误，例如权限问题。
+        # 捕获其他可能的读取文件错误，例如文件权限问题或磁盘问题。必须考虑到所有可能性。
         func_logger.error(f"错误：读取 JSON 文件 '{json_path}' 时发生未知错误。错误详情: {e}")
         return [] # 其他读取错误，返回空列表。
 
     func_logger.info(f"已成功从 '{json_path}' 加载 {len(json_data)} 条原始记录。")
-    
-    # 初始化计数器，用于统计数据处理过程中的情况。
-    found_images_count = 0    # 成功关联到图像的文档数量。
-    missing_key_count = 0     # 因缺少必要字段 ('name' 或 'description') 而被跳过的记录数量。
 
-    # 步骤 3: 遍历从 JSON 文件加载的每一条原始记录。
-    for item_index, item in enumerate(json_data): # 使用 enumerate 获取索引，方便日志记录
+    # 初始化计数器，用于统计数据处理过程中的情况。清晰的统计数据有助于了解数据质量。
+    found_images_count = 0    # 成功关联到图像的文档数量。
+    missing_key_count = 0     # 因缺少必要字段 ('name' 或 'description') 或内容无效而被跳过的记录数量。
+    image_dir_warning_issued = False # 用于控制图像目录无效警告只输出一次。
+
+    # 步骤 3: 遍历从 JSON 文件加载的每一条原始记录。这是核心的处理循环。
+    for item_index, item in enumerate(json_data): # 使用 enumerate 获取索引，方便日志记录和问题定位。
+        # 确保每一项都是字典。非字典项是无效数据。
         if not isinstance(item, dict):
-            func_logger.warning(f"警告：跳过第 {item_index + 1} 条记录，因其不是一个有效的字典对象。记录内容: {item}")
+            func_logger.warning(f"警告：跳过第 {item_index + 1} 条记录（JSON索引 {item_index}），因其不是一个有效的字典对象。记录内容: {item}")
             missing_key_count += 1
             continue
 
-        doc_id = item.get('name')         # 尝试获取 'name' 字段作为文档 ID。
+        doc_id = item.get('name')         # 尝试获取 'name' 字段作为文档 ID。使用 .get() 是安全的，即使键不存在也不会引发错误。
         text_content = item.get('description') # 尝试获取 'description' 字段作为文本内容。
 
-        # 检查关键字段 'name' 和 'description' 是否存在且有值。
-        # 如果任一字段缺失，则跳过该条记录。
-        if not doc_id or not text_content: # Both name and description must exist
+        # 检查关键字段 'name' 和 'description' 是否存在且有值。这两个字段是文档的基本信息，缺失则无法索引。
+        # 如果任一字段缺失或为空字符串（去除空白后），则跳过该条记录。
+        valid_doc_id = doc_id is not None and str(doc_id).strip()
+        valid_text = text_content is not None and str(text_content).strip()
+
+        if not valid_doc_id or not valid_text:
             missing_key_count += 1
-            func_logger.warning(f"警告：跳过第 {item_index + 1} 条记录（JSON索引 {item_index}），因缺少 'name' 或 'description' 字段。记录内容: {item}")
+            reason = []
+            if not valid_doc_id: reason.append("'name'字段缺失或为空")
+            if not valid_text: reason.append("'description'字段缺失或为空")
+            # 记录详细警告，包括原始索引和部分内容，便于用户排查数据源。
+            func_logger.warning(f"警告：跳过第 {item_index + 1} 条记录（原始JSON索引 {item_index}），原因: {', '.join(reason)}。记录内容: {item}")
             continue # 继续处理下一条记录。
 
         # 初始化图像路径为 None。如果在指定目录中找不到匹配的图像，它将保持为 None。
-        image_path: Optional[str] = None 
-        # 检查图像目录路径是否有效（已提供且存在于文件系统中）。
+        image_path: Optional[str] = None
+        # 检查图像目录路径是否有效（已提供且存在于文件系统中）。只有目录有效时才尝试查找图像。
         if image_dir and os.path.isdir(image_dir): # 确保 image_dir 是一个存在的目录
             # 遍历预定义的图像扩展名列表，尝试构建并查找图像文件。
             for ext in image_extensions:
@@ -219,44 +230,45 @@ def load_data_from_json_and_associate_images(json_path: str, image_dir: str) -> 
                 potential_image_filename = str(doc_id) + ext
                 # 使用 os.path.join 安全地构建跨平台的完整图像文件路径。
                 potential_image_path = os.path.join(image_dir, potential_image_filename)
-                
-                # 检查构建的图像文件路径是否存在于文件系统中。
+
+                # 检查构建的图像文件路径是否存在于文件系统中，并且是一个文件。
                 if os.path.exists(potential_image_path) and os.path.isfile(potential_image_path): # 确保是文件
                     image_path = potential_image_path # 找到图像，记录其完整路径。
                     found_images_count += 1           # 增加找到图像的计数。
                     break # 找到一个匹配的图像后，无需再检查其他扩展名，跳出内层循环。
-        elif image_dir and not os.path.isdir(image_dir):
-            # 如果提供了 image_dir 但它不是一个有效的目录，记录一次警告。
-            # 为避免日志泛滥，此警告只在第一次检测到时发出（通过在循环外设置一个标志）
-            # (为简化，此处每次都记录，但可优化)
+        elif image_dir and not os.path.isdir(image_dir) and not image_dir_warning_issued:
+            # 如果提供了 image_dir 但它不是一个有效的目录，记录一次警告。使用标志避免重复警告。
             func_logger.warning(f"提供的图像目录 '{image_dir}' 不是一个有效的目录，将无法关联图像。")
+            image_dir_warning_issued = True # 设置标志，表示警告已发出。
         elif not image_dir:
-            func_logger.debug(f"未提供图像目录 (image_dir is None or empty)，将不尝试关联图像。")
+             # 如果未提供图像目录，在 DEBUG 级别记录，避免在正常运行时输出过多信息。
+             func_logger.debug(f"未提供图像目录 (image_dir 为 None 或空)，将不尝试关联图像。")
 
 
         # 将处理后的文档信息（包括 ID、文本和可能的图像路径）添加到 `documents` 列表中。
         documents.append({
-            'id': str(doc_id), # 确保文档 ID 是字符串类型。
+            'id': str(doc_id), # 确保文档 ID 是字符串类型，以便后续一致处理。
             'text': str(text_content) if text_content is not None else None, # 确保文本是字符串；如果原始为 None，则保持 None。
             'image_path': image_path # 存储找到的图像路径，如果未找到则为 None。
         })
 
-    # 步骤 4: 打印数据加载和关联过程的总结信息。
+    # 步骤 4: 打印数据加载和关联过程的总结信息。清晰的总结是流程结束的标志。
     func_logger.info(f"成功准备了 {len(documents)} 个文档用于后续处理。")
     if missing_key_count > 0:
-        func_logger.warning(f"在原始 JSON 数据中，共有 {missing_key_count} 条记录因格式无效或缺少 'name'/'description' 字段而被跳过。")
+        func_logger.warning(f"在原始 JSON 数据中，共有 {missing_key_count} 条记录因格式无效或缺少有效 'name'/'description' 字段而被跳过。")
     func_logger.info(f"在有效文档中，共有 {found_images_count} 个文档成功关联了图像文件。")
-    
-    # 如果指定了图像目录，但没有找到任何图像文件（并且至少有一个文档被处理了），则给出提示。
+
+    # 如果指定了图像目录，但没有找到任何图像文件（并且至少有一个文档被处理了），则给出提示，帮助用户排查图片关联问题。
     if len(documents) > 0 and found_images_count == 0 and image_dir and os.path.isdir(image_dir):
          func_logger.info(f"提示: 未在目录 '{image_dir}' 中找到任何与文档 ID 匹配的图像文件。")
          func_logger.info(f"        请检查图像文件名是否严格遵循 '文档ID.扩展名' 的格式 (例如，如果文档 'name' 是 'item01'，则图像应为 'item01.png')。")
-    
+
     func_logger.info(f"--- 数据加载与图像关联流程结束 ---")
     return documents # 返回包含所有已处理文档信息的列表。
 
 # -------------------------------------------------------------------------------------------------
 # 多模态编码器类 (MultimodalEncoder)
+# 这是一个核心组件，负责将原始数据转化为机器可理解的向量表示。它的准确性直接影响检索效果。
 # -------------------------------------------------------------------------------------------------
 class MultimodalEncoder:
     """
@@ -276,7 +288,7 @@ class MultimodalEncoder:
     """
     def __init__(self, model_name: str = "openai/clip-vit-base-patch32"):
         """
-        初始化 MultimodalEncoder 类。
+        初始化 MultimodalEncoder 类。我需要确保模型和处理器能够被正确加载，这是编码器能工作的先决条件。
 
         Args:
             model_name (str): 指定要加载的 Hugging Face Hub 上的 CLIP 模型名称。
@@ -289,88 +301,92 @@ class MultimodalEncoder:
         Raises:
             Exception: 如果在加载 CLIP 模型或处理器时发生任何错误（例如，网络问题导致无法下载模型文件、
                        指定的模型名称无效、或者相关的依赖库未正确安装），则会抛出异常。
-                       由于模型是编码器的核心，加载失败意味着编码器无法工作。
+                       由于模型是编码器的核心，加载失败意味着编码器无法工作，这需要立即报告为严重错误。
         """
         # 获取一个特定于此类实例的日志记录器，方便追踪和调试。
         self.logger = logging.getLogger(__name__ + "." + self.__class__.__name__)
         self.logger.info(f"开始初始化 MultimodalEncoder，尝试加载 CLIP 模型: {model_name}")
-        
+
         try:
             # 步骤 1: 加载与指定 CLIP 模型相关联的处理器 (CLIPProcessor)。
             # 处理器负责将原始的文本和图像数据转换为 CLIP 模型期望的输入格式。
             # 对于文本，这通常包括分词 (tokenization)、添加特殊标记、转换为 token ID。
             # 对于图像，这通常包括调整大小 (resizing)、归一化 (normalization) 像素值。
+            # 这是数据进入模型的必经之路，不能出错。
             self.processor = CLIPProcessor.from_pretrained(model_name)
             self.logger.info(f"CLIP Processor for '{model_name}' 加载成功。")
 
-            # 步骤 2: 加载预训练的 CLIP 模型本身 (CLIPModel)。
+            # 步骤 2: 加载预训练的 CLIP 模型本身 (CLIPModel)。模型是编码功能的核心。
             self.model = CLIPModel.from_pretrained(model_name)
             self.logger.info(f"CLIP Model '{model_name}' 加载成功。")
 
-            # 步骤 3: 获取模型的输出向量维度。
+            # 步骤 3: 获取模型的输出向量维度。这个维度信息对于构建 Faiss 索引是必需的。
             # 对于 CLIP 模型，文本编码器和图像编码器的输出向量维度通常是相同的。
-            # 这个维度信息对于后续创建 Faiss 索引等操作非常重要。
             # text_model.config.hidden_size 通常存储了这个维度值。
             self.vector_dimension = self.model.text_model.config.hidden_size
             self.logger.info(f"CLIP 模型的特征向量维度为: {self.vector_dimension}")
 
             # 步骤 4: 将模型设置为评估模式 (evaluation mode)。
             # 调用 .eval() 会关闭模型中的 Dropout 层和 Batch Normalization 层的更新行为。
-            # 这对于推理（编码）阶段非常重要，以确保结果的一致性和确定性。
+            # 这对于推理（编码）阶段非常重要，以确保结果的一致性和确定性。这是标准做法。
             self.model.eval()
 
             # 步骤 5: 检测可用的计算设备 (GPU 或 CPU)，并将模型迁移到该设备。
+            # 优先使用 GPU 以提高编码速度，这对于处理大量数据时非常重要。
             if torch.cuda.is_available(): # 检查系统中是否有可用的 CUDA GPU。
                 self.device = torch.device("cuda") # 如果有，则选择使用 GPU。
                 self.logger.info("检测到 CUDA 支持，模型将运行在 GPU 上以获得更快的编码速度。")
             else:
                 self.device = torch.device("cpu")  # 如果没有 GPU，则使用 CPU。
                 self.logger.info("未检测到 CUDA 支持，模型将运行在 CPU 上 (编码速度可能较慢)。")
-            
+
             self.model.to(self.device) # 将模型的所有参数和缓冲区移动到选定的设备。
             self.logger.info(f"模型已成功移动到设备: {self.device}")
-            self.logger.info("MultimodalEncoder 初始化成功完成。")
+            self.logger.info("MultimodalEncoder 初始化成功完成。我已经准备好进行编码工作了。")
 
         except Exception as e:
-             # 如果在上述任何步骤中发生错误，记录详细的错误信息并重新抛出异常。
-             self.logger.error(f"初始化 MultimodalEncoder 失败：加载 CLIP 模型 '{model_name}' 时发生严重错误。")
-             self.logger.error(f"错误详情: {e}", exc_info=True) # exc_info=True 会记录完整的堆栈跟踪。
+             # 如果在上述任何步骤中发生错误，记录详细的错误信息并重新抛出异常。加载模型的失败是致命的，必须报告。
+             self.logger.critical(f"初始化 MultimodalEncoder 失败：加载 CLIP 模型 '{model_name}' 时发生严重错误。")
+             self.logger.error(f"错误详情: {e}", exc_info=True) # exc_info=True 会记录完整的堆栈跟踪，便于诊断。
              self.logger.error("请检查以下几点：")
              self.logger.error(f"  1. 确保指定的模型名称 '{model_name}' 正确且在 Hugging Face Hub 上可用。")
              self.logger.error("  2. 确保已正确安装必要的 Python 库: 'transformers', 'torch', 'pillow'。")
              self.logger.error("     (例如，通过命令: pip install transformers torch pillow)")
              self.logger.error("  3. 确保网络连接正常，以便能够从 Hugging Face Hub 下载模型文件 (首次加载时需要)。")
-             raise RuntimeError(f"MultimodalEncoder 初始化失败: {e}") from e # Re-raise as RuntimeError
+             raise RuntimeError(f"MultimodalEncoder 初始化失败: {e}") from e # 重新抛出异常，表明初始化失败。
 
     def _normalize_vector(self, vector: np.ndarray) -> np.ndarray:
         """
         对输入的 NumPy 向量进行 L2 范数归一化 (L2 Normalization)。
         L2 归一化将向量缩放，使其 L2 范数（欧几里得长度）为 1。
         这对于计算余弦相似度非常重要：两个 L2 归一化向量的点积（内积）等于它们之间的余弦相似度。
+        保持向量归一化是使用内积进行相似度搜索的必要前处理。
 
         Args:
             vector (np.ndarray): 需要进行 L2 归一化的 NumPy 浮点数向量。
 
         Returns:
             np.ndarray: 经过 L2 归一化后的向量。如果输入向量的范数非常接近于零（即零向量），
-                        则直接返回一个相同形状的零向量，以避免除以零的错误。
+                        则直接返回一个相同形状的零向量，以避免除以零的错误。这是为了处理特殊情况，确保程序的健壮性。
         """
         # 计算向量的 L2 范数 (向量的欧几里得长度)。
         norm = np.linalg.norm(vector)
-        
+
         # 检查范数是否大于一个很小的阈值 (epsilon)，以避免除以零或因浮点数精度问题导致的数值不稳定。
-        # 1e-9 是一个常用的小正数。
-        if norm > 1e-9: 
+        # 1e-9 是一个常用的小正数，用于判断一个浮点数是否“接近于零”。
+        if norm > 1e-9:
             # 如果范数足够大，则将向量的每个元素除以该范数，得到归一化向量。
             return vector / norm
         else:
             # 如果范数非常小（向量接近零向量），直接返回一个与输入向量形状相同但所有元素为零的向量。
+            # 这是对数值稳定性的考虑。
             self.logger.debug("尝试归一化一个范数接近零的向量。返回零向量。")
             return np.zeros_like(vector)
 
     def encode(self, text: Optional[str] = None, image_path: Optional[str] = None) -> Dict[str, Optional[np.ndarray]]:
         """
         对输入的文本字符串和/或图像文件路径进行编码，生成它们对应的归一化特征向量。
+        这是将原始数据转化为向量的核心操作。
 
         Args:
             text (Optional[str]): 需要编码的文本字符串。如果为 None 或空字符串，则不进行文本编码。
@@ -384,21 +400,24 @@ class MultimodalEncoder:
                                  这个平均向量可以作为文本和图像结合的多模态表示。如果任一编码失败或未提供，则为 None。
             如果 `text` 和 `image_path` 都为 None，将记录错误并返回所有值为 None 的字典。
         """
-        # 输入有效性检查：必须至少提供文本或图像路径之一。
-        if text is None and image_path is None:
-            self.logger.error("编码错误：必须至少提供文本或图像路径才能进行编码。")
+        # 输入有效性检查：必须至少提供文本或图像路径之一。如果什么都没提供，就无法编码。
+        is_text_valid = text is not None and text.strip()
+        is_image_path_valid = image_path is not None and image_path.strip()
+
+        if not is_text_valid and not is_image_path_valid:
+            self.logger.error("编码错误：必须至少提供有效的非空文本或有效的图像路径才能进行编码。")
             return {'text_vector': None, 'image_vector': None, 'mean_vector': None}
 
         # 初始化各个向量为 None，它们将在编码成功后被赋值。
         text_vector: Optional[np.ndarray] = None
         image_vector: Optional[np.ndarray] = None
         mean_vector: Optional[np.ndarray] = None
-        
+
         # 使用 torch.no_grad() 上下文管理器进行推理。
-        # 这会禁用 PyTorch 的梯度计算，从而减少内存消耗并加速计算，因为在编码（推理）阶段不需要进行反向传播。
+        # 这会禁用 PyTorch 的梯度计算，从而减少内存消耗并加速计算，因为在编码（推理）阶段不需要进行反向传播。这是提高效率的标准做法。
         with torch.no_grad():
             # --- 步骤 A: 编码文本 (如果提供了文本) ---
-            if text is not None and text.strip(): # 确保文本非None且非空（去除两端空白后）
+            if is_text_valid: # 确保文本非None且非空（去除两端空白后）
                 self.logger.debug(f"开始编码文本: '{text[:50]}{'...' if len(text)>50 else ''}'")
                 try:
                     # 1. 预处理文本: 使用 CLIP Processor 将文本字符串转换为模型所需的输入格式。
@@ -424,17 +443,17 @@ class MultimodalEncoder:
                     self.logger.debug("文本编码成功并已归一化。")
 
                 except Exception as e:
-                    # 如果文本编码过程中发生任何错误，记录错误信息。
+                    # 如果文本编码过程中发生任何错误，记录错误信息。这可能是由于模型输入处理问题。
                     self.logger.error(f"编码文本时发生错误。文本: '{text[:50]}...'. 错误详情: {e}", exc_info=False) # exc_info=False 避免在每次文本编码失败时都打印完整堆栈
                     text_vector = None # 确保在失败时 text_vector 为 None。
 
             # --- 步骤 B: 编码图像 (如果提供了图像路径) ---
-            if image_path is not None and image_path.strip(): # 确保图像路径非None且非空
+            if is_image_path_valid: # 确保图像路径非None且非空
                 self.logger.debug(f"开始编码图像: '{image_path}'")
                 try:
                     # 1. 加载图像: 使用 Pillow (PIL) 库的 Image.open() 方法打开图像文件。
                     #    `.convert("RGB")`: 确保图像转换为 RGB 格式。CLIP 模型通常期望 RGB 图像作为输入。
-                    #                       即使原始图像是 RGBA 或灰度图，也会被转换为 RGB。
+                    #                       即使原始图像是 RGBA 或灰度图，也会被转换为 RGB。这是模型输入的要求。
                     image_pil = Image.open(image_path).convert("RGB")
 
                     # 2. 预处理图像: 使用 CLIP Processor 将 PIL.Image 对象转换为模型所需的输入格式。
@@ -451,7 +470,7 @@ class MultimodalEncoder:
                     self.logger.debug(f"图像 '{os.path.basename(image_path)}' 编码成功并已归一化。")
 
                 except FileNotFoundError:
-                    # 如果指定的图像文件路径不存在。
+                    # 如果指定的图像文件路径不存在。这是文件系统问题。
                     self.logger.warning(f"图像编码警告: 图像文件未找到于路径 '{image_path}'。将跳过此图像的编码。")
                     image_vector = None
                 except UnidentifiedImageError: # Pillow 无法识别图像格式
@@ -463,7 +482,7 @@ class MultimodalEncoder:
                     image_vector = None
 
         # --- 步骤 C: 计算平均向量 (仅当文本和图像都成功编码时) ---
-        # 检查 text_vector 和 image_vector 是否都成功生成 (即它们都不是 None)。
+        # 检查 text_vector 和 image_vector 是否都成功生成 (即它们都不是 None)。只有同时有文本和图像时，计算平均向量才有意义。
         if text_vector is not None and image_vector is not None:
             self.logger.debug("文本和图像均成功编码，开始计算它们的平均向量...")
             try:
@@ -481,22 +500,23 @@ class MultimodalEncoder:
                 self.logger.error(f"计算文本和图像的平均向量时发生错误。错误详情: {e}", exc_info=False)
                 mean_vector = None
         elif (text_vector is not None or image_vector is not None):
+             # 如果只编码了文本或图像之一，则不需要计算平均向量。
              self.logger.debug("仅文本或图像之一被成功编码，因此不计算平均向量。")
 
 
-        # 总结编码结果，用于日志记录。
+        # 总结编码结果，用于日志记录。这提供了每条编码操作的清晰反馈。
         results_summary = []
         if text_vector is not None: results_summary.append("文本向量")
         if image_vector is not None: results_summary.append("图像向量")
         if mean_vector is not None: results_summary.append("平均向量")
-        
+
         input_summary_parts = []
-        if text and text.strip(): input_summary_parts.append(f"文本='{text[:30]}...'")
-        if image_path and image_path.strip(): input_summary_parts.append(f"图像='{os.path.basename(image_path)}'")
+        if is_text_valid: input_summary_parts.append(f"文本='{text[:30]}{'...' if len(text)>30 else ''}'")
+        if is_image_path_valid: input_summary_parts.append(f"图像='{os.path.basename(image_path)}'")
         input_desc = ", ".join(input_summary_parts) if input_summary_parts else "无有效输入"
 
-
-        if not results_summary and ( (text and text.strip()) or (image_path and image_path.strip()) ):
+        # 根据编码结果是否有向量生成，记录不同级别的日志。
+        if not results_summary and (is_text_valid or is_image_path_valid):
              self.logger.warning(f"编码完成，但对于输入 ({input_desc})，未能生成任何有效向量。")
         elif results_summary:
              self.logger.info(f"编码完成对于 ({input_desc})。成功生成的向量: {', '.join(results_summary)}。")
@@ -510,6 +530,8 @@ class MultimodalEncoder:
 
 # -------------------------------------------------------------------------------------------------
 # 索引器类 (Indexer)
+# Indexer 是整个系统的知识库构建者和管理者。它的稳定性和数据一致性至关重要。
+# 我必须确保数据库和向量索引的正确初始化、填充和持久化。
 # -------------------------------------------------------------------------------------------------
 class Indexer:
     """
@@ -525,15 +547,16 @@ class Indexer:
     5.  **持久化**: 能够从指定文件路径加载先前已保存的索引文件和数据库，或者在首次运行时创建它们。在关闭时，会将当前的索引状态保存到文件，以便下次使用。
 
     这种分离索引的设计（文本、图像、平均）允许在检索阶段根据用户查询的类型（纯文本、纯图像、或图文多模态）灵活地选择最合适的索引进行搜索，从而提高检索的准确性和效率。
+    我的目标是构建一个可靠的、易于管理的知识库。
     """
     def __init__(self,
-                 db_path: str, 
-                 faiss_text_index_path: str, 
-                 faiss_image_index_path: str, 
-                 faiss_mean_index_path: str, 
+                 db_path: str,
+                 faiss_text_index_path: str,
+                 faiss_image_index_path: str,
+                 faiss_mean_index_path: str,
                  clip_model_name: str = "openai/clip-vit-base-patch32"):
         """
-        初始化 Indexer 实例。
+        初始化 Indexer 实例。我需要一丝不苟地设置好数据库和所有索引文件路径，并准备好编码器。
 
         Args:
             db_path (str): 指定 SQLite 数据库文件的保存路径。
@@ -542,11 +565,15 @@ class Indexer:
             faiss_mean_index_path (str): 指定平均向量 Faiss 索引文件的保存路径。
             clip_model_name (str): 传递给内部 `MultimodalEncoder` 的 CLIP 模型名称。
                                    此模型名称必须与后续用于查询编码的模型保持一致，以确保向量空间的一致性。
+
+        Raises:
+            Exception: 如果在初始化内部编码器、数据库或 Faiss 索引时发生任何错误，则抛出异常。
+                       这些都是 Indexer 工作的核心依赖，任何失败都是严重问题。
         """
         self.logger = logging.getLogger(__name__ + "." + self.__class__.__name__)
         self.logger.info("开始初始化 Indexer...")
-        
-        # 保存传入的路径和模型名称配置。
+
+        # 保存传入的路径和模型名称配置。清晰的路径信息是管理文件的重要前提。
         self.db_path = db_path
         self.faiss_text_index_path = faiss_text_index_path
         self.faiss_image_index_path = faiss_image_index_path
@@ -557,18 +584,18 @@ class Indexer:
         self.logger.info(f"  平均向量索引路径: {self.faiss_mean_index_path}")
 
         # 步骤 1: 初始化多模态编码器 (MultimodalEncoder)。
-        # Indexer 内部拥有一个 Encoder 实例，专门用于对其接收的文档进行编码。
+        # Indexer 内部拥有一个 Encoder 实例，专门用于对其接收的文档进行编码。这是将数据转换为向量的基础。
         self.logger.info(f"  - 正在初始化内部 MultimodalEncoder，使用 CLIP 模型: {clip_model_name}...")
         try:
             self.encoder = MultimodalEncoder(clip_model_name) # 创建编码器实例。
-            self.vector_dimension = self.encoder.vector_dimension # 从编码器获取产生的向量维度
+            self.vector_dimension = self.encoder.vector_dimension # 从编码器获取产生的向量维度。确保所有索引都使用正确的维度。
             self.logger.info(f"  - MultimodalEncoder 初始化完成。特征向量维度为: {self.vector_dimension}。")
         except Exception as e_encoder:
             self.logger.critical(f"Indexer 初始化严重失败：内部 MultimodalEncoder 创建失败。错误: {e_encoder}", exc_info=True)
             raise RuntimeError(f"Indexer 无法初始化 Encoder: {e_encoder}") from e_encoder
 
         # 步骤 2: 初始化 SQLite 数据库 (用于存储文档元数据)。
-        # 调用私有方法 `_init_db` 来确保数据库文件存在，并创建所需的表结构（如果尚不存在）。
+        # 调用私有方法 `_init_db` 来确保数据库文件存在，并创建所需的表结构（如果尚不存在）。数据库是元数据的可靠来源。
         self.logger.info(f"  - 正在初始化 SQLite 数据库，路径: '{self.db_path}'...")
         try:
             self._init_db() # 此方法会处理数据库目录的创建。
@@ -580,7 +607,7 @@ class Indexer:
 
         # 步骤 3: 加载或创建三个独立的 Faiss 向量索引。
         # 分别为文本向量、图像向量和平均向量（文本+图像组合）加载或创建 Faiss 索引。
-        # `_load_or_create_faiss_index` 方法会处理文件存在性检查、维度匹配和新索引创建的逻辑。
+        # `_load_or_create_faiss_index` 方法会处理文件存在性检查、维度匹配和新索引创建的逻辑。索引是快速检索的基础，必须准备好。
         self.logger.info(f"  - 正在加载或创建 Faiss 向量索引...")
         try:
             self.text_index = self._load_or_create_faiss_index(self.faiss_text_index_path, "文本(Text)")
@@ -592,7 +619,7 @@ class Indexer:
             raise RuntimeError(f"Indexer 无法初始化 Faiss 索引: {e_faiss_init}") from e_faiss_init
 
 
-        self.logger.info("Indexer 初始化成功完成。")
+        self.logger.info("Indexer 初始化成功完成。我将竭尽全力确保索引的准确和高效。")
 
 
     def _init_db(self):
@@ -600,13 +627,13 @@ class Indexer:
         初始化 SQLite 数据库连接并创建所需的 'documents' 表（如果它还不存在）。
         这个表用于存储文档的元数据，并将原始文档 ID (doc_id) 映射到数据库生成的
         自增主键 `internal_id`。这个 `internal_id` 将作为 Faiss 索引中对应向量的 ID。
-        此方法还会确保数据库文件所在的目录存在。
+        此方法还会确保数据库文件所在的目录存在。这是构建可靠知识库的基石。
         """
         self.logger.info(f"正在连接并初始化数据库表结构于路径: '{self.db_path}'...")
-        
-        # 确保数据库文件所在的目录存在，如果不存在则创建它。
+
+        # 确保数据库文件所在的目录存在，如果不存在则创建它。这是文件系统操作的标准防御性编程。
         db_directory = os.path.dirname(self.db_path)
-        if db_directory and not os.path.exists(db_directory): 
+        if db_directory and not os.path.exists(db_directory):
             try:
                 os.makedirs(db_directory, exist_ok=True) # exist_ok=True 表示如果目录已存在则不抛出错误。
                 self.logger.debug(f"已确保数据库目录 '{db_directory}' 存在 (或已创建)。")
@@ -615,15 +642,15 @@ class Indexer:
                 raise # Re-raise the exception as this is critical
 
         try:
-            # 使用 'with' 语句确保数据库连接在使用后自动关闭，并能自动处理事务（默认提交，出错回滚）。
+            # 使用 'with' 语句确保数据库连接在使用后自动关闭，并能自动处理事务（默认提交，出错回滚）。这是安全的数据库操作模式。
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor() # 获取数据库游标，用于执行 SQL 命令。
-                
+
                 # SQL 语句，用于创建 'documents' 表。
                 # `IF NOT EXISTS` 确保如果表已经存在，则不会尝试重新创建它，从而避免错误。
-                # 表结构定义:
+                # 表结构定义必须精确：
                 #   - internal_id: 整数类型，主键，自动增长。这是数据库内部ID，也将用作Faiss索引的ID。
-                #   - doc_id: 文本类型，唯一约束，不能为空。这是原始文档的唯一标识符 (例如来自JSON的'name'字段)。
+                #   - doc_id: 文本类型，唯一约束，不能为空。这是原始文档的唯一标识符 (例如来自JSON的'name'字段)，必须保证唯一性。
                 #   - text: 文本类型，存储文档的文本内容，允许为空 (NULL)。
                 #   - image_path: 文本类型，存储关联图像文件的路径，允许为空。
                 cursor.execute('''
@@ -634,18 +661,18 @@ class Indexer:
                         image_path TEXT
                     )
                 ''')
-                
+
                 # 可选：在 'doc_id' 列上创建一个索引。
-                # 这可以加快通过原始 `doc_id` 查找记录的速度，例如在 `index_documents` 方法中检查重复文档时。
+                # 这可以加快通过原始 `doc_id` 查找记录的速度，例如在 `index_documents` 方法中检查重复文档时。索引能提升性能。
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_doc_id ON documents (doc_id)")
-                
+
                 conn.commit() # 提交事务，使表结构更改和索引创建生效。
                 self.logger.info(f"数据库表 'documents' (及索引 'idx_doc_id') 初始化成功，或已存在。")
         except sqlite3.Error as e: # Catch specific SQLite errors
-             self.logger.error(f"严重错误：初始化 SQLite 数据库 '{self.db_path}' 失败。错误详情: {e}", exc_info=True)
+             self.logger.critical(f"严重错误：初始化 SQLite 数据库 '{self.db_path}' 失败。错误详情: {e}", exc_info=True)
              raise RuntimeError(f"SQLite数据库操作失败: {e}") from e # Re-raise as a more generic runtime error
         except Exception as e_general:
-            self.logger.error(f"初始化 SQLite 数据库 '{self.db_path}' 时发生未知错误。错误详情: {e_general}", exc_info=True)
+            self.logger.critical(f"初始化 SQLite 数据库 '{self.db_path}' 时发生未知错误。错误详情: {e_general}", exc_info=True)
             raise RuntimeError(f"SQLite数据库初始化未知错误: {e_general}") from e_general
 
 
@@ -653,9 +680,9 @@ class Indexer:
         """
         尝试从指定路径加载一个 Faiss 索引文件。
         - 如果文件存在且其内部存储的向量维度与当前编码器 (`self.encoder`) 的输出维度匹配，则加载该索引。
-        - 如果文件不存在，或者文件存在但维度不匹配（表明该索引可能是用不同模型创建的），则创建一个新的、空的 Faiss 索引。
-        - 使用 `faiss.IndexIDMap2` 类型的索引，它允许我们将自定义的 64 位整数 ID 与每个向量关联起来。
-        此方法还会确保索引文件所在的目录存在。
+        - 如果文件不存在，或者文件存在但维度不匹配（表明该索引可能是用不同模型创建的，不能兼容），则创建一个新的、空的 Faiss 索引。
+        - 使用 `faiss.IndexIDMap2` 类型的索引，它允许我们将自定义的 64 位整数 ID (数据库的 internal_id) 与每个向量关联起来。
+        此方法还会确保索引文件所在的目录存在。我的职责是确保索引可用，无论是加载旧的还是创建一个新的。
 
         Args:
             index_path (str): Faiss 索引文件的期望路径。
@@ -668,12 +695,12 @@ class Indexer:
 
         # 确保 Faiss 索引文件所在的目录存在，如果不存在则创建它。
         index_directory = os.path.dirname(index_path)
-        if index_directory and not os.path.exists(index_directory): 
+        if index_directory and not os.path.exists(index_directory):
             try:
                 os.makedirs(index_directory, exist_ok=True)
                 self.logger.debug(f"已确保 '{index_type_description}' 索引的目录 '{index_directory}' 存在 (或已创建)。")
             except OSError as e:
-                self.logger.error(f"创建Faiss索引目录 '{index_directory}' 失败: {e}", exc_info=True)
+                self.logger.critical(f"创建Faiss索引目录 '{index_directory}' 失败: {e}", exc_info=True)
                 raise # Re-raise as this is critical
 
 
@@ -686,6 +713,7 @@ class Indexer:
                 self.logger.info(f"文件 '{index_path}' 读取成功，包含 {index.ntotal} 个向量，维度为 {index.d}。")
 
                 # **重要**: 检查加载的索引的维度 (`index.d`) 是否与当前编码器模型产生的向量维度 (`self.vector_dimension`) 一致。
+                # 维度不一致意味着索引与当前模型不兼容，强行使用会导致错误或无效结果。必须进行此项检查。
                 if index.d != self.vector_dimension:
                     # 如果维度不匹配，这意味着已加载的索引是用不同的（或不同配置的）CLIP 模型创建的，因此不能直接使用。
                     self.logger.warning(f"维度不匹配警告! 加载的 '{index_type_description}' 索引维度 ({index.d}) 与当前编码器配置的维度 ({self.vector_dimension}) 不一致。")
@@ -693,7 +721,7 @@ class Indexer:
                     # 创建一个新的、空的 Faiss 索引来替换掉加载的不兼容的旧索引。
                     index = self._create_new_faiss_index(index_type_description)
                 else:
-                    # 维度匹配，加载成功。
+                    # 维度匹配，加载成功。太好了，我们可以复用之前的索引了。
                     self.logger.info(f"成功加载 '{index_type_description}' Faiss 索引，维度 ({index.d}) 与当前模型匹配。索引中包含 {index.ntotal} 个向量。")
             else:
                 # 如果索引文件不存在。
@@ -701,7 +729,7 @@ class Indexer:
                 # 调用内部方法创建新的空索引。
                 index = self._create_new_faiss_index(index_type_description)
         except Exception as e:
-            # 处理在加载或读取索引文件过程中可能发生的任何其他错误。
+            # 处理在加载或读取索引文件过程中可能发生的任何其他错误。即使加载失败，也要保证能创建一个新索引。
             self.logger.error(f"错误：加载或处理 '{index_type_description}' Faiss 索引 '{index_path}' 失败。错误详情: {e}", exc_info=True)
             self.logger.info(f"作为安全回退机制，将创建一个新的空 '{index_type_description}' 索引。")
             # 即使加载失败，也创建一个新的空索引，以保证程序能够继续运行（尽管可能没有历史数据）。
@@ -714,7 +742,7 @@ class Indexer:
          该索引被配置为使用内积 (`IndexFlatIP`) 进行相似度搜索，并使用 `IndexIDMap2` 包装器
          来支持为每个向量存储自定义的 64 位整数 ID。
          `IndexFlatIP` 适用于存储原始（未压缩）向量并进行精确的、暴力的内积搜索。
-         对于已经 L2 归一化的向量，内积得分等价于余弦相似度。
+         对于已经 L2 归一化的向量，内积得分等价于余弦相似度。我选择这个类型是因为它简单且对于归一化向量表现良好。
 
          Args:
              index_type_description (str): 索引类型的描述 (例如 "文本", "图像")，用于日志记录。
@@ -728,7 +756,7 @@ class Indexer:
          #   - `IndexFlat`: 表示 Faiss 将存储完整的、未经压缩或量化的原始向量。这提供了最精确的搜索结果，但需要更多内存。
          #   - `IP` (Inner Product): 表示该索引将使用内积作为向量间的距离/相似度度量。
          #   当存储的向量都经过 L2 归一化时，它们之间的内积值等于它们之间的余弦相似度。
-         #   `self.vector_dimension` 是从 CLIP 模型获取的特征向量的维度。
+         #   `self.vector_dimension` 是从 CLIP 模型获取的特征向量的维度，这是索引创建的基础。
          quantizer = faiss.IndexFlatIP(self.vector_dimension)
          self.logger.debug(f"  为 '{index_type_description}' 创建了 IndexFlatIP 基础索引，维度: {self.vector_dimension}。")
 
@@ -737,7 +765,7 @@ class Indexer:
          #   - 它允许我们在向索引添加向量时，为每个向量指定一个我们自己定义的 64 位整数 ID。
          #   - 在搜索时，它会返回这些我们指定的 ID，而不是 Faiss 内部的连续行号。
          #   - '2' 在名称中通常表示它使用了更现代或更灵活的内部ID重映射机制。
-         #   - 我们将使用从 SQLite 数据库生成的 `internal_id` 作为这个自定义 ID。
+         #   - 我们将使用从 SQLite 数据库生成的 `internal_id` 作为这个自定义 ID。这保证了向量与元数据的关联。
          index = faiss.IndexIDMap2(quantizer)
          self.logger.debug(f"  将 IndexFlatIP 包装在 IndexIDMap2 中，以支持自定义向量 ID。")
 
@@ -753,23 +781,23 @@ class Indexer:
         然后将文档的元数据存储到 SQLite 数据库中，并将生成的特征向量（文本向量、图像向量、平均向量）
         及其对应的数据库内部ID (`internal_id`) 添加到各自的 Faiss 索引中。
         此方法会处理基于 `doc_id` 的重复文档（即，如果一个具有相同 `doc_id` 的文档已存在于数据库中，则跳过它）。
-        为了提高效率，向量会分批收集，然后一次性批量添加到 Faiss 索引中。
+        为了提高效率，向量会分批收集，然后一次性批量添加到 Faiss 索引中。这是确保效率和可靠性的关键。
 
         Args:
             documents (List[Dict[str, Any]]): 一个字典列表，其中每个字典代表一个待索引的文档。
-                                    每个字典应至少包含 'id' (原始文档ID), 'text' (文本内容), 
+                                    每个字典应至少包含 'id' (原始文档ID), 'text' (文本内容),
                                     和 'image_path' (关联图像的路径，可能为None) 这几个键。
                                     这通常是 `load_data_from_json_and_associate_images` 函数的输出格式。
         """
-        # 检查输入的文档列表是否为空。
+        # 检查输入的文档列表是否为空。如果没有任何文档，就没有必要继续。
         if not documents:
             self.logger.info("未提供任何文档进行索引操作。流程结束。")
             return
 
         self.logger.info(f"开始执行文档索引流程，准备处理 {len(documents)} 个文档...")
-        
+
         # 初始化列表，用于批量收集需要添加到 Faiss 索引的向量和它们对应的 ID。
-        # 分别为文本、图像和平均向量准备独立的批处理列表。
+        # 分别为文本、图像和平均向量准备独立的批处理列表。批量操作比逐个添加更高效。
         text_vectors_batch: List[np.ndarray] = []   # 存储文本特征向量 (NumPy 数组)。
         text_ids_batch: List[int] = []              # 存储与文本向量对应的 `internal_id` (整数)。
         image_vectors_batch: List[np.ndarray] = []  # 存储图像特征向量。
@@ -777,13 +805,15 @@ class Indexer:
         mean_vectors_batch: List[np.ndarray] = []   # 存储平均（文本+图像）特征向量。
         mean_ids_batch: List[int] = []              # 存储与平均向量对应的 `internal_id`。
 
-        # 初始化计数器，用于跟踪索引过程的各种统计数据。
-        processed_count = 0          # 成功处理并至少尝试了编码的文档数量。
+        # 初始化计数器，用于跟踪索引过程的各种统计数据。清晰的统计数据帮助了解索引的实际情况。
+        processed_count = 0          # 成功处理并至少为其生成了一个向量的文档数量。
         skipped_duplicate_count = 0  # 因 `doc_id` 已存在于数据库中而被跳过的文档数量。
-        encoding_failure_count = 0   # 因编码阶段（文本或图像）出错而未能为其生成向量的文档数量。
+        skipped_invalid_input_count = 0 # 因输入数据无效（缺少ID或内容）而被跳过的文档数量。
+        encoding_failure_count = 0   # 因编码阶段（文本或图像）出错而未能为其生成向量的文档数量 (即使元数据可能已插入)。
+        db_check_error_count = 0     # 因检查重复项时数据库出错而被跳过的文档数量。
         db_insert_error_count = 0    # 因数据库插入操作出错而被跳过的文档数量。
 
-        conn: Optional[sqlite3.Connection] = None # 初始化数据库连接变量，确保在 try...finally 块中可见。
+        conn: Optional[sqlite3.Connection] = None # 初始化数据库连接变量，确保在 try...finally 块中可见，用于最终的连接关闭。
         try:
             # 步骤 1: 建立与 SQLite 数据库的连接。
             self.logger.debug(f"正在连接到数据库: {self.db_path}")
@@ -791,110 +821,139 @@ class Indexer:
             cursor = conn.cursor() # 获取数据库游标。
             # sqlite3 默认在执行 DML 语句 (如 INSERT) 时会自动开始一个事务。
             # 我们将在所有文档处理完毕后，在循环外部统一提交 (commit) 或回滚 (rollback) 事务，
-            # 以确保数据库操作的原子性（相对于整个批次而言）。
+            # 以确保数据库操作的原子性（相对于整个批次而言）。这是保证数据一致性的重要手段。
 
             # 步骤 2: 遍历每个待索引的文档。
             self.logger.info(f"开始遍历 {len(documents)} 个文档进行处理和编码...")
-            for i, doc_data in enumerate(documents): # 使用 enumerate 获取索引和文档数据。
+            for i, doc_data in enumerate(documents): # 使用 enumerate 获取索引和文档数据，便于日志记录和问题定位。
                 doc_id = doc_data.get('id')          # 获取原始文档 ID。
                 text_content = doc_data.get('text')  # 获取文本内容。
                 image_file_path = doc_data.get('image_path') # 获取图像路径。
 
                 self.logger.debug(f"处理文档 {i+1}/{len(documents)}: ID='{doc_id}'")
 
-                # 基本有效性验证：`doc_id` 必须存在。
-                if not doc_id:
-                    self.logger.warning(f"跳过列表中的第 {i+1} 条记录（原始索引 {i}），因其缺少 'id' 字段。记录: {doc_data}")
+                # 基本有效性验证：`doc_id` 必须存在且非空。这是文档的唯一标识。
+                doc_id_str = str(doc_id).strip() if doc_id is not None else None
+                if not doc_id_str:
+                    self.logger.warning(f"跳过列表中的第 {i+1} 条记录（原始索引 {i}），因其缺少有效 'id' 字段。记录: {doc_data}")
+                    skipped_invalid_input_count += 1 # 计入无效输入
                     continue # 跳到下一个文档。
+
                 # 至少需要文本或图像路径之一才能进行有意义的编码。
-                if not text_content and not image_file_path:
-                     self.logger.warning(f"跳过文档 ID '{doc_id}'，因为它既没有文本内容，也没有关联的图像路径。无法为其生成任何向量。")
+                has_valid_text = text_content is not None and str(text_content).strip()
+                has_valid_image = image_file_path is not None and str(image_file_path).strip()
+                if not has_valid_text and not has_valid_image:
+                     self.logger.warning(f"跳过文档 ID '{doc_id_str}'，因为它既没有有效的文本内容，也没有有效的关联图像路径。无法为其生成任何向量。")
+                     skipped_invalid_input_count += 1 # 计入无效输入
                      continue # 跳到下一个文档。
 
                 # --- 2a. 检查文档是否已在数据库中存在 (基于 `doc_id`) ---
+                # 这是防止重复索引的关键步骤。
                 try:
-                    cursor.execute("SELECT internal_id FROM documents WHERE doc_id = ?", (str(doc_id),)) # Ensure doc_id is string
+                    cursor.execute("SELECT internal_id FROM documents WHERE doc_id = ?", (doc_id_str,))
                     existing_record = cursor.fetchone() # 获取查询结果（如果存在的话）。
                     if existing_record:
-                         self.logger.debug(f"文档 ID '{doc_id}' 已存在于数据库中 (其 internal_id 为: {existing_record[0]})。将跳过此重复文档的索引。")
+                         self.logger.debug(f"文档 ID '{doc_id_str}' 已存在于数据库中 (其 internal_id 为: {existing_record[0]})。将跳过此重复文档的索引。")
                          skipped_duplicate_count += 1
                          continue # 跳到下一个文档。
                 except sqlite3.Error as e_check:
-                    self.logger.error(f"检查文档 ID '{doc_id}' 是否存在时发生数据库错误: {e_check}。将跳过此文档。")
-                    db_insert_error_count +=1 # 计入数据库错误
+                    self.logger.error(f"检查文档 ID '{doc_id_str}' 是否存在时发生数据库错误: {e_check}。将跳过此文档以防意外行为。")
+                    db_check_error_count += 1 # 计入数据库检查错误
+                    continue # 跳到下一个文档以确保安全。
+
+
+                # --- 2b. 使用内部 Encoder 对文档进行多模态向量化 ---
+                # 在插入数据库之前进行编码，如果编码失败，则不插入元数据，保持一致性。
+                encoded_data: Optional[Dict[str, Optional[np.ndarray]]] = None # 初始化编码结果。
+                encoding_succeeded = False
+                try:
+                    self.logger.debug(f"开始为文档 '{doc_id_str}' 进行多模态编码...")
+                    # Pass original text_content and image_file_path, encode() handles validation internally
+                    encoded_data = self.encoder.encode(text=text_content, image_path=image_file_path)
+                    # 检查编码是否至少生成了一个向量
+                    if encoded_data and (encoded_data.get('text_vector') is not None or
+                                          encoded_data.get('image_vector') is not None or
+                                          encoded_data.get('mean_vector') is not None):
+                        encoding_succeeded = True
+                        self.logger.debug(f"文档 '{doc_id_str}' 编码成功，至少生成了一个向量。")
+                    else:
+                         self.logger.warning(f"文档 '{doc_id_str}' 编码完成，但未能生成任何有效向量 (即使输入有效)。")
+                         encoding_failure_count += 1
+                         # 不继续插入数据库，因为没有向量可以关联
+
+                except Exception as encode_e:
+                    self.logger.error(f"严重错误：在编码文档 '{doc_id_str}' 时发生意外错误: {encode_e}", exc_info=True)
+                    encoding_failure_count += 1
+                    # 不继续插入数据库，因为编码失败
+
+                # 如果编码失败（没有生成任何向量或发生异常），则跳过此文档的后续处理（数据库插入和Faiss添加）。
+                if not encoding_succeeded:
+                    self.logger.warning(f"由于文档 '{doc_id_str}' 的编码未能生成有效向量，将跳过此文档的数据库插入和 Faiss 索引添加。")
                     continue
 
-
-                # --- 2b. 将文档元数据插入到数据库，并获取生成的 `internal_id` ---
+                # --- 2c. 将文档元数据插入到数据库，并获取生成的 `internal_id` ---
+                # 只有在编码成功后才执行此步骤。
                 internal_id: Optional[int] = None # 初始化 internal_id。
                 try:
                     # 执行 INSERT 语句将新文档的元数据插入到 'documents' 表。
                     # 使用参数化查询 (问号占位符) 来防止 SQL 注入攻击。
                     cursor.execute(
                         "INSERT INTO documents (doc_id, text, image_path) VALUES (?, ?, ?)",
-                        (str(doc_id), text_content, image_file_path) # Ensure doc_id is string
+                        (doc_id_str, text_content, image_file_path) # 使用清理过的 doc_id_str
                     )
                     # 获取刚刚插入行的自增主键 (`internal_id`)。
                     # `cursor.lastrowid` 返回最后插入行的 ROWID。
                     internal_id = cursor.lastrowid
-                    if internal_id is None: 
-                        self.logger.error(f"严重数据库错误：为文档 '{doc_id}' 插入元数据后，未能获取有效的 internal_id (lastrowid is None)。")
-                        raise sqlite3.Error(f"数据库错误：未能为文档 '{doc_id}' 获取 internal_id。")
-                    self.logger.debug(f"文档 '{doc_id}' 的元数据已成功插入数据库，获得的 internal_id: {internal_id}")
+                    if internal_id is None:
+                        # 这是一个理论上不太可能发生但在极端情况下需要考虑的问题。
+                        self.logger.error(f"严重数据库错误：为文档 '{doc_id_str}' 插入元数据后，未能获取有效的 internal_id (lastrowid is None)。这将导致向量无法与元数据关联！")
+                        # 尝试回滚当前文档的操作？或者记录错误并继续？这里选择记录并尝试继续，但标记错误。
+                        db_insert_error_count += 1
+                        continue # 跳过这个文档的 Faiss 添加，因为没有有效的 ID
+                    self.logger.debug(f"文档 '{doc_id_str}' 的元数据已成功插入数据库，获得的 internal_id: {internal_id}")
 
                 except sqlite3.IntegrityError:
                     # 当尝试插入的 `doc_id` 违反了表的 UNIQUE 约束时（理论上不应发生，因为前面已检查过）。
-                    self.logger.error(f"数据库完整性错误：尝试插入已存在的文档 ID '{doc_id}'（可能是并发问题或检查逻辑遗漏）。将跳过此文档。")
-                    skipped_duplicate_count += 1 
-                    continue 
+                    # 这是一个额外的防御层。
+                    self.logger.error(f"数据库完整性错误：尝试插入已存在的文档 ID '{doc_id_str}'（可能是并发问题或检查逻辑遗漏）。将跳过此文档。")
+                    # 之前检查过，理论上不应该到这里，但作为安全措施计数。
+                    skipped_duplicate_count += 1
+                    continue
                 except sqlite3.Error as db_e:
-                    self.logger.error(f"数据库错误：在为文档 '{doc_id}' 插入元数据时发生错误: {db_e}。将跳过此文档的索引。")
+                    self.logger.error(f"数据库错误：在为文档 '{doc_id_str}' 插入元数据时发生错误: {db_e}。将跳过此文档的 Faiss 添加。")
                     db_insert_error_count += 1
-                    continue 
-
-                # --- 2c. 使用内部 Encoder 对文档进行多模态向量化 ---
-                encoded_data: Optional[Dict[str, Optional[np.ndarray]]] = None # 初始化编码结果。
-                if internal_id is not None: # 只有成功获取 internal_id 后才进行编码
-                    try:
-                        self.logger.debug(f"开始为文档 '{doc_id}' (internal_id: {internal_id}) 进行多模态编码...")
-                        encoded_data = self.encoder.encode(text=text_content, image_path=image_file_path)
-                    except Exception as encode_e:
-                        self.logger.error(f"严重错误：在编码文档 '{doc_id}' (internal_id: {internal_id}) 时发生意外错误: {encode_e}", exc_info=True)
-                        self.logger.warning(f"注意：此文档的元数据可能已存入数据库，但其向量将不会被添加到 Faiss 索引中，因为它编码失败。")
-                        encoding_failure_count += 1
-                        continue 
+                    continue # 跳过 Faiss 添加，因为元数据插入失败
 
                 # --- 2d. 将成功编码的向量添加到对应的批处理列表中 ---
-                at_least_one_vector_added_for_doc = False
-                if encoded_data and internal_id is not None: 
+                # 只有在编码成功 且 数据库插入成功 (获取到internal_id) 后才执行。
+                if internal_id is not None and encoded_data is not None:
+                    at_least_one_vector_added_for_doc = False # 跟踪该文档是否至少有一个向量被添加到批处理。
                     if encoded_data.get('text_vector') is not None:
                         text_vectors_batch.append(encoded_data['text_vector']) # type: ignore
                         text_ids_batch.append(internal_id)
                         at_least_one_vector_added_for_doc = True
-                        self.logger.debug(f"  文本向量已为文档 '{doc_id}' (internal_id: {internal_id}) 准备好加入批处理。")
-                    
+                        self.logger.debug(f"  文本向量已为文档 '{doc_id_str}' (internal_id: {internal_id}) 准备好加入批处理。")
+
                     if encoded_data.get('image_vector') is not None:
                         image_vectors_batch.append(encoded_data['image_vector']) # type: ignore
                         image_ids_batch.append(internal_id)
                         at_least_one_vector_added_for_doc = True
-                        self.logger.debug(f"  图像向量已为文档 '{doc_id}' (internal_id: {internal_id}) 准备好加入批处理。")
+                        self.logger.debug(f"  图像向量已为文档 '{doc_id_str}' (internal_id: {internal_id}) 准备好加入批处理。")
 
                     if encoded_data.get('mean_vector') is not None:
                         mean_vectors_batch.append(encoded_data['mean_vector']) # type: ignore
                         mean_ids_batch.append(internal_id)
                         at_least_one_vector_added_for_doc = True
-                        self.logger.debug(f"  平均向量已为文档 '{doc_id}' (internal_id: {internal_id}) 准备好加入批处理。")
-                    
-                    if not at_least_one_vector_added_for_doc and (text_content or image_file_path):
-                        self.logger.warning(f"文档 '{doc_id}' (internal_id: {internal_id}) 有内容，但编码后未生成任何有效向量。")
-                        encoding_failure_count += 1
-                    elif at_least_one_vector_added_for_doc:
-                        processed_count += 1 
-                
-                elif internal_id is not None and (text_content or image_file_path): 
-                    self.logger.warning(f"文档 '{doc_id}' (internal_id: {internal_id}) 编码返回 None，尽管有内容。计为编码失败。")
-                    encoding_failure_count += 1
+                        self.logger.debug(f"  平均向量已为文档 '{doc_id_str}' (internal_id: {internal_id}) 准备好加入批处理。")
 
+                    # 如果编码成功，数据库插入成功，但没有向量被添加到批处理（理论上不可能，因为encoding_succeeded保证了至少一个向量存在）
+                    # 这是一个内部逻辑检查。
+                    if not at_least_one_vector_added_for_doc:
+                        self.logger.error(f"内部逻辑错误：文档 '{doc_id_str}' (internal_id: {internal_id}) 编码和数据库插入均成功，但没有向量被添加到批处理！")
+                        # 这种情况不应该发生，但如果发生了，也算作处理失败的一种形式
+                        encoding_failure_count += 1 # 归类为编码相关问题
+                    else:
+                        processed_count += 1 # 只有编码成功、DB插入成功、向量准备好加入批处理，才算成功处理。
 
             # --- 文档遍历和初步处理完成 ---
             self.logger.info(f"所有 {len(documents)} 个输入文档已遍历处理完毕。")
@@ -904,70 +963,112 @@ class Indexer:
             self.logger.info(f"  - 待添加平均向量数量: {len(mean_ids_batch)}")
 
             # --- 步骤 3: 批量将向量和 ID 添加到对应的 Faiss 索引 ---
-            if text_vectors_batch: 
-                ids_np_text = np.array(text_ids_batch, dtype='int64')
-                vectors_np_text = np.array(text_vectors_batch, dtype='float32')
-                self.text_index.add_with_ids(vectors_np_text, ids_np_text) 
-                self.logger.info(f"已成功向文本(Text) Faiss 索引批量添加 {len(text_vectors_batch)} 个向量。当前索引总数: {self.text_index.ntotal}")
+            # 批量添加比逐个添加效率高得多。
+            faiss_add_errors = 0
+            try:
+                if text_vectors_batch:
+                    ids_np_text = np.array(text_ids_batch, dtype='int64') # Faiss IndexIDMap2 需要 int64 类型的 ID。
+                    vectors_np_text = np.array(text_vectors_batch, dtype='float32') # Faiss 通常使用 float32。
+                    self.text_index.add_with_ids(vectors_np_text, ids_np_text) # 将向量和对应的 ID 批量添加到文本索引。
+                    self.logger.info(f"已成功向文本(Text) Faiss 索引批量添加 {len(text_vectors_batch)} 个向量。当前索引总数: {self.text_index.ntotal}")
+            except Exception as faiss_e_text:
+                self.logger.error(f"错误：向文本(Text) Faiss 索引批量添加向量时失败: {faiss_e_text}", exc_info=True)
+                faiss_add_errors += 1
 
-            if image_vectors_batch:
-                ids_np_image = np.array(image_ids_batch, dtype='int64')
-                vectors_np_image = np.array(image_vectors_batch, dtype='float32')
-                self.image_index.add_with_ids(vectors_np_image, ids_np_image)
-                self.logger.info(f"已成功向图像(Image) Faiss 索引批量添加 {len(image_vectors_batch)} 个向量。当前索引总数: {self.image_index.ntotal}")
+            try:
+                if image_vectors_batch:
+                    ids_np_image = np.array(image_ids_batch, dtype='int64')
+                    vectors_np_image = np.array(image_vectors_batch, dtype='float32')
+                    self.image_index.add_with_ids(vectors_np_image, ids_np_image)
+                    self.logger.info(f"已成功向图像(Image) Faiss 索引批量添加 {len(image_vectors_batch)} 个向量。当前索引总数: {self.image_index.ntotal}")
+            except Exception as faiss_e_image:
+                self.logger.error(f"错误：向图像(Image) Faiss 索引批量添加向量时失败: {faiss_e_image}", exc_info=True)
+                faiss_add_errors += 1
 
-            if mean_vectors_batch:
-                ids_np_mean = np.array(mean_ids_batch, dtype='int64')
-                vectors_np_mean = np.array(mean_vectors_batch, dtype='float32')
-                self.mean_index.add_with_ids(vectors_np_mean, ids_np_mean)
-                self.logger.info(f"已成功向平均(Mean) Faiss 索引批量添加 {len(mean_vectors_batch)} 个向量。当前索引总数: {self.mean_index.ntotal}")
+            try:
+                if mean_vectors_batch:
+                    ids_np_mean = np.array(mean_ids_batch, dtype='int64')
+                    vectors_np_mean = np.array(mean_vectors_batch, dtype='float32')
+                    self.mean_index.add_with_ids(vectors_np_mean, ids_np_mean)
+                    self.logger.info(f"已成功向平均(Mean) Faiss 索引批量添加 {len(mean_vectors_batch)} 个向量。当前索引总数: {self.mean_index.ntotal}")
+            except Exception as faiss_e_mean:
+                self.logger.error(f"错误：向平均(Mean) Faiss 索引批量添加向量时失败: {faiss_e_mean}", exc_info=True)
+                faiss_add_errors += 1
 
             # --- 步骤 4: 提交数据库事务 ---
-            if conn: 
+            # 如果 Faiss 添加过程中出现任何错误，也应该提交数据库更改，因为元数据插入是在此之前完成的。
+            # 但需要记录 Faiss 添加失败的情况。
+            if conn:
                 conn.commit()
-                self.logger.info("数据库事务已成功提交。所有元数据更改已持久化。")
+                self.logger.info("数据库事务已成功提交。元数据更改已持久化。")
+                if faiss_add_errors > 0:
+                    self.logger.warning(f"警告：虽然数据库事务已提交，但在向 {faiss_add_errors} 个 Faiss 索引添加向量时发生了错误。数据库和 Faiss 索引可能存在不一致！")
 
         except Exception as e:
             self.logger.critical(f"严重错误：在文档索引过程中发生意外的顶级异常: {e}", exc_info=True)
+            # 如果在处理过程中发生任何未捕获的异常，回滚数据库事务是必要的，以避免数据库处于不一致状态。
             if conn:
-                self.logger.info("检测到严重错误，正在尝试回滚数据库事务以撤销未提交的更改...")
+                self.logger.warning("检测到严重错误，正在尝试回滚数据库事务以撤销本批次未提交的更改...")
                 try:
                     conn.rollback()
                     self.logger.info("数据库事务已成功回滚。")
                 except Exception as rb_e:
                     self.logger.error(f"错误：尝试回滚数据库事务时失败: {rb_e}", exc_info=True)
         finally:
+            # 无论发生什么，最后都要关闭数据库连接。
             if conn:
                 conn.close()
                 self.logger.debug("数据库连接已关闭。")
 
         # --- 打印索引过程的最终总结信息 ---
+        # 这是一个重要的报告，总结了本次索引操作的结果。
         self.logger.info(f"\n--- 文档索引过程总结 ---")
         self.logger.info(f"- 输入文档总数: {len(documents)}")
-        self.logger.info(f"- 成功处理并为其生成了至少一个向量的文档数: {processed_count}")
+        self.logger.info(f"- 因输入无效(缺少ID或内容)跳过的文档数: {skipped_invalid_input_count}")
         self.logger.info(f"- 因 'doc_id' 在数据库中已存在而跳过的文档数: {skipped_duplicate_count}")
-        self.logger.info(f"- 因编码阶段（文本/图像）错误而未能生成向量的文档数: {encoding_failure_count}")
-        self.logger.info(f"- 因数据库操作（如插入元数据）错误而跳过的文档数: {db_insert_error_count}")
-        self.logger.info(f"- 当前文本 Faiss 索引中的向量总数: {getattr(self.text_index, 'ntotal', 'N/A')}")
-        self.logger.info(f"- 当前图像 Faiss 索引中的向量总数: {getattr(self.image_index, 'ntotal', 'N/A')}")
-        self.logger.info(f"- 当前平均 Faiss 索引中的向量总数: {getattr(self.mean_index, 'ntotal', 'N/A')}")
-        
-        db_final_count = self.get_document_count() 
-        self.logger.info(f"- 当前 SQLite 数据库中存储的文档元数据记录总数: {db_final_count}")
-        
-        max_faiss_vectors = 0
-        if hasattr(self.text_index, 'ntotal'): max_faiss_vectors = max(max_faiss_vectors, self.text_index.ntotal)
-        if hasattr(self.image_index, 'ntotal'): max_faiss_vectors = max(max_faiss_vectors, self.image_index.ntotal)
-        if hasattr(self.mean_index, 'ntotal'): max_faiss_vectors = max(max_faiss_vectors, self.mean_index.ntotal)
+        self.logger.info(f"- 因检查重复项时数据库错误跳过的文档数: {db_check_error_count}")
+        self.logger.info(f"- 因编码未能生成有效向量而跳过的文档数: {encoding_failure_count}")
+        self.logger.info(f"- 因数据库插入错误而跳过的文档数: {db_insert_error_count}")
+        self.logger.info(f"- 成功处理(编码成功+DB插入成功+准备添加到Faiss)的文档数: {processed_count}")
+        self.logger.info(f"- 向 Faiss 添加向量时发生错误的索引数量: {faiss_add_errors if 'faiss_add_errors' in locals() else 'N/A'}") # Check if var exists
 
-        if db_final_count < max_faiss_vectors:
-             self.logger.warning(f"数据一致性警告：数据库记录数 ({db_final_count}) 少于某个 Faiss 索引中的最大向量数 ({max_faiss_vectors})。数据可能存在不一致！请检查日志。")
+        # 获取当前索引中的向量总数，使用 getattr 安全访问 ntotal 属性。
+        text_final_count = getattr(self.text_index, 'ntotal', 'N/A')
+        image_final_count = getattr(self.image_index, 'ntotal', 'N/A')
+        mean_final_count = getattr(self.mean_index, 'ntotal', 'N/A')
+        self.logger.info(f"- 当前文本 Faiss 索引中的向量总数: {text_final_count}")
+        self.logger.info(f"- 当前图像 Faiss 索引中的向量总数: {image_final_count}")
+        self.logger.info(f"- 当前平均 Faiss 索引中的向量总数: {mean_final_count}")
+
+        # 获取数据库中的文档总数，并与Faiss索引中的向量数进行比较，检查一致性。
+        db_final_count = self.get_document_count()
+        self.logger.info(f"- 当前 SQLite 数据库中存储的文档元数据记录总数: {db_final_count}")
+
+        # 进行一致性检查
+        if isinstance(text_final_count, int) and isinstance(image_final_count, int) and isinstance(mean_final_count, int):
+            max_faiss_vectors = max(text_final_count, image_final_count, mean_final_count)
+            # 理想情况下，成功处理的文档数 (processed_count) 应该等于添加到 Faiss 的向量数（对于存在对应向量类型的文档）
+            # 数据库的最终记录数 (db_final_count) 应该等于处理过程中成功插入数据库的总数。
+            # 注意：processed_count 是本轮成功处理的数量，而 db_final_count 和 Faiss count 是累积总量。
+            # 更准确的检查是比较本轮成功添加到 Faiss 的批次大小与 processed_count。
+
+            # 粗略检查：比较数据库总数和Faiss最大总数
+            if db_final_count > max_faiss_vectors and max_faiss_vectors >= 0: # Allow max_faiss_vectors == 0
+                 self.logger.warning(f"数据一致性提示：数据库记录数 ({db_final_count}) 多于 Faiss 索引中的最大向量数 ({max_faiss_vectors})。")
+                 self.logger.warning(f"                 这可能是正常的（例如，部分文档只有文本没有图像，或反之），但也可能表示部分向量未能添加成功。请检查日志。")
+            elif db_final_count < max_faiss_vectors:
+                 self.logger.error(f"数据一致性错误：数据库记录数 ({db_final_count}) 少于某个 Faiss 索引中的最大向量数 ({max_faiss_vectors})。数据可能存在严重不一致！")
+                 self.logger.error(f"                 这可能意味着部分文档的向量被添加到了Faiss，但其元数据未能插入数据库！请检查错误日志。")
+        else:
+            self.logger.warning("未能执行完整的数据库/Faiss数量一致性检查，因为无法获取所有索引的数值计数。")
+
         self.logger.info(f"--- 文档索引过程结束 ---")
 
 
     def get_document_by_internal_id(self, internal_id: int) -> Optional[Dict[str, Any]]:
         """
         根据 Faiss 搜索返回的 `internal_id` (即数据库中的主键)，从 SQLite 数据库中检索对应的原始文档元数据。
+        这是从向量检索结果回溯到原始文档信息的必要步骤。
 
         Args:
             internal_id (int): 要查询的文档在数据库中的 `internal_id` (通常由 Faiss 搜索返回)。
@@ -982,7 +1083,7 @@ class Indexer:
             # 连接到 SQLite 数据库。
             with sqlite3.connect(self.db_path) as conn:
                 # 设置 conn.row_factory = sqlite3.Row 使得查询结果可以像字典一样通过列名访问，更方便。
-                conn.row_factory = sqlite3.Row 
+                conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
                 # 执行 SELECT 查询，根据 internal_id 查找记录。
                 cursor.execute(
@@ -990,7 +1091,7 @@ class Indexer:
                     (internal_id,) # 注意参数是一个元组。
                 )
                 row = cursor.fetchone() # 获取一行结果。
-                
+
                 if row:
                     # 如果找到了记录 (row 不为 None)。
                     doc_data = dict(row) # 将 sqlite3.Row 对象转换为标准的 Python 字典。
@@ -1005,16 +1106,16 @@ class Indexer:
                     return None # 返回 None。
         except sqlite3.Error as e_sql:
              self.logger.error(f"数据库错误：从数据库根据 internal_id '{internal_id}' 获取文档时发生错误: {e_sql}", exc_info=True)
-             return None 
+             return None
         except Exception as e_general:
              self.logger.error(f"未知错误：从数据库根据 internal_id '{internal_id}' 获取文档时发生: {e_general}", exc_info=True)
-             return None 
+             return None
 
     def get_documents_by_internal_ids(self, internal_ids: List[int]) -> Dict[int, Dict[str, Any]]:
         """
         根据一个 `internal_id` 的列表，从 SQLite 数据库中批量检索对应的多个文档的元数据。
         使用批量查询 (SELECT ... WHERE internal_id IN (...)) 通常比多次单独查询更高效，
-        尤其是在处理 Faiss 返回的 Top-K 结果列表时。
+        尤其是在处理 Faiss 返回的 Top-K 结果列表时。这是为了提高检索后获取元数据的效率。
 
         Args:
             internal_ids (List[int]): 一个包含多个数据库 `internal_id` 的整数列表。
@@ -1030,51 +1131,76 @@ class Indexer:
             self.logger.debug("请求批量获取文档，但提供的 internal_id 列表为空。返回空结果。")
             return {}
 
-        self.logger.debug(f"尝试从数据库根据 internal_id 列表 (共 {len(internal_ids)} 个) 批量获取文档元数据...")
+        # 限制一次批量查询的ID数量，避免SQL语句过长导致的问题。
+        # SQLite 默认的 SQLITE_MAX_VARIABLE_NUMBER 是 999，但可以被编译时修改。
+        # 为保险起见，设置一个稍小的值，或者如果需要处理大量 ID，应实现分块查询逻辑。
+        max_ids_per_query = 900 # Use a slightly conservative limit
         results: Dict[int, Dict[str, Any]] = {} # 初始化结果字典。
-        try:
-            # 连接到 SQLite 数据库。
-            with sqlite3.connect(self.db_path) as conn:
-                conn.row_factory = sqlite3.Row # 设置行工厂，方便处理查询结果。
-                cursor = conn.cursor()
 
-                # 构建 SQL 查询语句，使用 IN 操作符和参数占位符进行批量查询。
-                # 1. 创建占位符字符串: "(?, ?, ..., ?)" - 每个 ID 对应一个 '?'。
-                placeholders = ','.join('?' for _ in internal_ids)
-                # 2. 构建完整的 SQL 查询语句。
-                query = f"SELECT internal_id, doc_id, text, image_path FROM documents WHERE internal_id IN ({placeholders})"
-                self.logger.debug(f"执行批量查询SQL: {query} (参数数量: {len(internal_ids)})")
+        # 对 ID 进行分块处理，以防列表过长
+        for i in range(0, len(internal_ids), max_ids_per_query):
+            id_chunk = internal_ids[i:i + max_ids_per_query]
+            if not id_chunk: continue # Skip empty chunks (shouldn't happen with correct slicing)
 
-                # 执行查询，将 ID 列表作为参数传递给 execute 方法。
-                cursor.execute(query, internal_ids)
-                rows = cursor.fetchall() # 获取所有匹配的行。
-                self.logger.debug(f"数据库批量查询返回了 {len(rows)} 行记录。")
+            self.logger.debug(f"尝试从数据库根据 internal_id 列表块 (块大小 {len(id_chunk)}) 批量获取文档元数据...")
 
-                # 遍历查询结果。
-                for row in rows:
-                    doc_data = dict(row) # 将 sqlite3.Row 转换为字典。
-                    doc_data['id'] = doc_data.pop('doc_id') # 重命名 'doc_id' 为 'id'。
-                    # 使用 internal_id 作为键，将文档数据存入结果字典。
-                    results[doc_data['internal_id']] = doc_data
-                
-                # 检查是否有ID未找到 (如果 len(results) < len(internal_ids))
-                if len(results) < len(internal_ids):
-                    found_ids_set = set(results.keys()) # More efficient for checking
-                    missing_ids = [id_val for id_val in internal_ids if id_val not in found_ids_set]
-                    if missing_ids:
-                         self.logger.warning(f"在批量获取文档时，以下 internal_id 未在数据库中找到: {missing_ids}")
+            try:
+                # 连接到 SQLite 数据库。
+                with sqlite3.connect(self.db_path) as conn:
+                    conn.row_factory = sqlite3.Row # 设置行工厂，方便处理查询结果。
+                    cursor = conn.cursor()
 
-        except sqlite3.Error as e_sql:
-             self.logger.error(f"数据库错误：从数据库根据 internal_id 列表批量获取文档时发生: {e_sql}", exc_info=True)
-        except Exception as e_general:
-            self.logger.error(f"未知错误：从数据库根据 internal_id 列表批量获取文档时发生: {e_general}", exc_info=True)
-        
-        self.logger.debug(f"批量获取文档元数据完成，共返回 {len(results)} 个文档的信息。")
+                    # 构建 SQL 查询语句，使用 IN 操作符和参数占位符进行批量查询。
+                    # 1. 创建占位符字符串: "(?, ?, ..., ?)" - 每个 ID 对应一个 '?'。
+                    placeholders = ','.join('?' for _ in id_chunk)
+                    # 2. 构建完整的 SQL 查询语句。
+                    query = f"SELECT internal_id, doc_id, text, image_path FROM documents WHERE internal_id IN ({placeholders})"
+                    self.logger.debug(f"执行批量查询SQL (块 {i // max_ids_per_query + 1}): {query[:100]}... (参数数量: {len(id_chunk)})")
+
+                    # 执行查询，将 ID 列表块作为参数传递给 execute 方法。
+                    cursor.execute(query, id_chunk)
+                    rows = cursor.fetchall() # 获取所有匹配的行。
+                    self.logger.debug(f"数据库批量查询块返回了 {len(rows)} 行记录。")
+
+                    # 遍历查询结果。
+                    for row in rows:
+                        doc_data = dict(row) # 将 sqlite3.Row 转换为字典。
+                        doc_data['id'] = doc_data.pop('doc_id') # 重命名 'doc_id' 为 'id'。
+                        # 使用 internal_id 作为键，将文档数据存入结果字典。
+                        results[doc_data['internal_id']] = doc_data
+
+                    # 检查当前块中是否有ID未找到 (如果 len(rows) < len(id_chunk))，并记录警告。
+                    if len(rows) < len(id_chunk):
+                        found_ids_in_chunk_set = set(row['internal_id'] for row in rows) # Use set for efficiency
+                        missing_ids_in_chunk = [id_val for id_val in id_chunk if id_val not in found_ids_in_chunk_set]
+                        if missing_ids_in_chunk:
+                             self.logger.warning(f"在批量获取文档块时，以下 internal_id 未在数据库中找到: {missing_ids_in_chunk}")
+                             # Removed the second warning line to reduce noise, the implication is clear.
+
+            except sqlite3.Error as e_sql:
+                 self.logger.error(f"数据库错误：从数据库根据 internal_id 列表块获取文档时发生: {e_sql}", exc_info=True)
+                 # 返回当前已收集的结果，并可能跳过后续块（或可以设计为继续尝试其他块）。
+                 # 这里选择继续处理下一个块，但错误已被记录。
+            except Exception as e_general:
+                self.logger.error(f"未知错误：从数据库根据 internal_id 列表块获取文档时发生: {e_general}", exc_info=True)
+                # 同上，记录错误并尝试继续。
+
+        self.logger.debug(f"批量获取文档元数据完成，共处理 {len(internal_ids)} 个请求 ID，返回 {len(results)} 个文档的信息。")
+        # 最后再检查一次总数是否匹配，以防分块逻辑隐藏问题。
+        if len(results) < len(internal_ids):
+             all_requested_ids_set = set(internal_ids)
+             all_found_ids_set = set(results.keys())
+             final_missing_ids = list(all_requested_ids_set - all_found_ids_set)
+             if final_missing_ids:
+                  self.logger.warning(f"最终检查：在所有请求的 internal_id 中，以下 ID 未在数据库中找到: {final_missing_ids[:20]}{'...' if len(final_missing_ids)>20 else ''} (总计缺失 {len(final_missing_ids)} 个)")
+                  self.logger.warning("  这可能表示 Faiss 索引与数据库元数据之间存在不一致。请检查日志和数据源。")
+
         return results
 
     def get_document_count(self) -> int:
          """
          获取当前 SQLite 数据库 'documents' 表中存储的文档总数量。
+         这是一个简单的计数功能，但对于监控知识库大小非常有用。
 
          Returns:
              int: 数据库中 'documents' 表的总行数。如果发生错误，则返回 0。
@@ -1094,21 +1220,21 @@ class Indexer:
                  return count
          except sqlite3.Error as e_sql:
               self.logger.error(f"数据库错误：从数据库获取文档总数时发生错误: {e_sql}", exc_info=True)
-              return 0 
+              return 0
          except Exception as e_general:
               self.logger.error(f"未知错误：从数据库获取文档总数时发生: {e_general}", exc_info=True)
-              return 0 
+              return 0
 
     def save_indices(self):
         """
         将内存中的所有三个 Faiss 索引（文本、图像、平均）分别保存到它们对应的文件路径中。
         这个方法用于持久化索引的状态，以便在下次程序启动时可以加载这些索引，从而避免重新处理和编码所有文档。
-        只有当索引非空（即包含至少一个向量）时，才会执行保存操作。
+        只有当索引非空（即包含至少一个向量）时，才会执行保存操作。确保辛苦构建的索引不会丢失。
         """
         self.logger.info("开始尝试将所有 Faiss 索引保存到磁盘文件...")
         # 调用内部辅助方法 `_save_single_index` 分别保存每个索引。
         # 传递索引对象、目标文件路径和索引类型描述（用于日志）。
-        if hasattr(self, 'text_index'):
+        if hasattr(self, 'text_index'): # 检查对象是否存在且有效
              self._save_single_index(self.text_index, self.faiss_text_index_path, "文本(Text)")
         else:
             self.logger.warning("文本(Text)索引对象不存在，无法保存。")
@@ -1117,7 +1243,7 @@ class Indexer:
             self._save_single_index(self.image_index, self.faiss_image_index_path, "图像(Image)")
         else:
             self.logger.warning("图像(Image)索引对象不存在，无法保存。")
-        
+
         if hasattr(self, 'mean_index'):
             self._save_single_index(self.mean_index, self.faiss_mean_index_path, "平均(Mean)")
         else:
@@ -1129,7 +1255,7 @@ class Indexer:
         """
         辅助方法：保存单个 Faiss 索引到指定的文件路径。
         仅当索引对象有效且包含至少一个向量时才执行保存。
-        此方法还会确保索引文件要保存到的目录存在。
+        此方法还会确保索引文件要保存到的目录存在。每一个细节都不能忽略。
 
         Args:
             index (Optional[faiss.Index]): 需要保存的 Faiss 索引对象。可能是 None。
@@ -1137,17 +1263,17 @@ class Indexer:
             index_type_description (str): 索引类型的描述性名称 (例如 "文本", "图像")，用于日志记录。
         """
         self.logger.debug(f"准备保存 '{index_type_description}' Faiss 索引到路径: '{index_path}'...")
-        
+
         if index is None:
             self.logger.warning(f"  警告：'{index_type_description}' Faiss 索引对象为 None，无法执行保存操作。")
             return
 
-        # 检查索引对象是否有效（存在 `ntotal` 属性，表示向量数量）以及向量数量是否大于 0。
+        # 检查索引对象是否有效（存在 `ntotal` 属性，表示向量数量）以及向量数量是否大于 0。只有非空索引才有保存的价值。
         if hasattr(index, 'ntotal') and index.ntotal > 0:
             try:
                 # 确保索引文件要保存到的目录存在，如果不存在则创建它。
                 index_directory = os.path.dirname(index_path)
-                if index_directory and not os.path.exists(index_directory): 
+                if index_directory and not os.path.exists(index_directory):
                     os.makedirs(index_directory, exist_ok=True)
                     self.logger.debug(f"  已确保 '{index_type_description}' 索引的保存目录 '{index_directory}' 存在 (或已创建)。")
 
@@ -1159,8 +1285,9 @@ class Indexer:
                 self.logger.error(f"  错误：保存 '{index_type_description}' Faiss 索引到 '{index_path}' 失败。错误详情: {e}", exc_info=True)
         elif hasattr(index, 'ntotal'): # 索引存在但为空 (ntotal == 0)
              self.logger.info(f"  跳过：'{index_type_description}' Faiss 索引为空 (ntotal={index.ntotal})，因此不保存到 '{index_path}'。")
-        else: # 索引对象无效或未正确初始化 
+        else: # 索引对象无效或未正确初始化
              self.logger.warning(f"  警告：'{index_type_description}' Faiss 索引似乎未正确初始化 (缺少 ntotal 属性)，无法执行保存操作。")
+
 
     def close(self):
         """
@@ -1169,6 +1296,7 @@ class Indexer:
         SQLite 数据库连接是通过 `with sqlite3.connect(...)` 语句管理的，在每个相关方法结束时会自动关闭，
         因此这里不需要显式关闭数据库连接。
         Faiss 索引对象本身在 Python 中是内存对象，它们不需要像文件句柄那样显式关闭；保存它们的状态即是“关闭”操作。
+        这是一个负责任的结束流程，确保资源得到妥善处理。
         """
         self.logger.info("开始关闭 Indexer 实例...")
         # 调用 save_indices 方法，确保存储所有 Faiss 索引的最新状态。
@@ -1177,6 +1305,8 @@ class Indexer:
 
 # -------------------------------------------------------------------------------------------------
 # 检索器类 (Retriever)
+# Retriever 是系统的“搜索大脑”，它根据用户的查询在知识库中找到最相关的文档。
+# 它的效率和准确性是提供良好RAG体验的关键。
 # -------------------------------------------------------------------------------------------------
 class Retriever:
     """
@@ -1185,23 +1315,24 @@ class Retriever:
 
     1.  **接收查询**: 用户通过 `retrieve` 方法提交查询。
     2.  **查询编码**: 利用与 `Indexer` 中相同的 `MultimodalEncoder` 实例对用户查询进行向量化，
-        将其转换为与索引文档相同向量空间中的特征向量（可能包括文本向量、图像向量和/或平均向量）。
+        将其转换为与索引文档相同向量空间中的特征向量（可能包括文本向量、图像向量和/或平均向量）。保持编码器一致性是保证向量空间对齐的基础。
     3.  **选择策略**: 根据查询的类型（纯文本、纯图像、多模态）和可用性，
         选择最合适的 Faiss 索引（文本索引、图像索引或平均向量索引）以及对应的查询向量进行搜索。
-        例如，纯文本查询将使用文本向量在文本索引中搜索。
+        例如，纯文本查询将使用文本向量在文本索引中搜索。如果首选索引不可用，会尝试回退到其他可用的策略。
     4.  **相似度搜索**: 在选定的 Faiss 索引中执行 Top-K 相似度搜索，找出与查询向量最相似的 K 个向量。
         搜索结果是这些向量的 `internal_id` (与数据库主键对应) 和它们与查询向量的相似度得分。
     5.  **获取元数据**: 使用检索到的 `internal_id` 列表，通过 `Indexer` 的接口从 SQLite 数据库中批量获取
-        这些最相关文档的完整元数据（如原始ID、文本内容、图像路径等）。
+        这些最相关文档的完整元数据（如原始ID、文本内容、图像路径等）。这是将向量结果转化为有用信息的过程。
     6.  **结果组合与返回**: 将获取到的文档元数据与它们各自的相似度得分结合起来，
         并按照相似度得分从高到低（表示最相关）排序，最终返回一个包含这些信息的文档列表。
 
     Retriever 依赖于一个已经初始化并填充了数据和索引的 `Indexer` 实例。
     它复用 `Indexer` 的编码器以保证查询和文档编码的一致性，并访问 `Indexer` 中的 Faiss 索引和数据库。
+    我必须确保它能准确、高效地从 Indexer 获取信息。
     """
     def __init__(self, indexer: Indexer):
         """
-        初始化 Retriever 实例。
+        初始化 Retriever 实例。我必须确保它能正确地连接到并使用 Indexer 提供的资源。
 
         Args:
             indexer (Indexer): 一个已经初始化并包含了数据和索引的 `Indexer` 类的实例。
@@ -1209,29 +1340,30 @@ class Retriever:
 
         Raises:
             ValueError: 如果传入的 `indexer` 不是 `Indexer` 类的有效实例，或者该实例似乎缺少
-                        必要的 Faiss 索引属性 (text_index, image_index, mean_index)，则抛出此异常。
+                        必要的 Faiss 索引属性 (text_index, image_index, mean_index) 或编码器，则抛出此异常。
                         一个没有有效索引源的 Retriever 是无法工作的。
         """
         self.logger = logging.getLogger(__name__ + "." + self.__class__.__name__)
         self.logger.info("开始初始化 Retriever...")
-        
-        # 验证传入的 indexer 参数的有效性。
+
+        # 验证传入的 indexer 参数的有效性。Retriever 的工作完全依赖于 Indexer，所以这个检查非常重要。
         if not isinstance(indexer, Indexer):
-             msg = "Retriever 初始化错误: 需要一个有效的 Indexer 实例，但收到的不是。"
-             self.logger.error(msg)
+             msg = "Retriever 初始化错误: 需要一个有效的 Indexer 实例，但收到的不是预期的类型。"
+             self.logger.critical(msg)
              raise ValueError(msg)
-        
-        # 进一步验证 Indexer 实例是否已成功创建了所需的 Faiss 索引对象。
+
+        # 进一步验证 Indexer 实例是否已成功创建了所需的 Faiss 索引对象和编码器。
+        # 缺少这些核心组件意味着 Indexer 初始化失败，Retriever 也无法工作。
         required_indices_attributes = ['text_index', 'image_index', 'mean_index', 'encoder', 'vector_dimension']
         missing_attrs = [attr for attr in required_indices_attributes if not hasattr(indexer, attr) or getattr(indexer, attr) is None]
         if missing_attrs:
             msg = f"Retriever 初始化错误: 提供的 Indexer 实例缺少以下必需的属性: {', '.join(missing_attrs)}。请确保 Indexer 已成功初始化。"
-            self.logger.error(msg)
+            self.logger.critical(msg)
             raise ValueError(msg)
 
-        # 保存对传入的 Indexer 实例的引用。
+        # 保存对传入的 Indexer 实例的引用。Retriever 将通过这个引用访问 Indexer 的资源。
         self.indexer: Indexer = indexer
-        # 复用 Indexer 内部的 Encoder 实例。
+        # 复用 Indexer 内部的 Encoder 实例。这是确保查询向量和文档向量在同一空间的关键。
         self.encoder: MultimodalEncoder = self.indexer.encoder
         # 从 Indexer 获取向量维度。
         self.vector_dimension: int = self.indexer.vector_dimension
@@ -1242,11 +1374,11 @@ class Retriever:
         self.image_index: faiss.Index = self.indexer.image_index
         self.mean_index: faiss.Index = self.indexer.mean_index
 
-        # 检查所有关联的 Faiss 索引是否都为空。
-        text_index_ntotal = getattr(self.text_index, 'ntotal', 0) 
+        # 检查所有关联的 Faiss 索引是否都为空。如果索引为空，Retriever 就无法找到任何结果。
+        text_index_ntotal = getattr(self.text_index, 'ntotal', 0)
         image_index_ntotal = getattr(self.image_index, 'ntotal', 0)
         mean_index_ntotal = getattr(self.mean_index, 'ntotal', 0)
-        
+
         if text_index_ntotal == 0 and image_index_ntotal == 0 and mean_index_ntotal == 0:
              self.logger.warning("Retriever 初始化警告: Indexer 中的所有 Faiss 索引当前都为空。")
              self.logger.warning("  这意味着任何检索操作都将无法找到任何匹配的文档。")
@@ -1256,13 +1388,14 @@ class Retriever:
              self.logger.info(f"    - 文本(Text)索引中向量数: {text_index_ntotal}")
              self.logger.info(f"    - 图像(Image)索引中向量数: {image_index_ntotal}")
              self.logger.info(f"    - 平均(Mean)索引中向量数: {mean_index_ntotal}")
-        self.logger.info("Retriever 初始化完成。")
+        self.logger.info("Retriever 初始化完成。我已经准备好根据您的查询进行搜索了。")
 
 
     def retrieve(self, query: Union[str, Dict[str, str]], k: int = 5) -> List[Dict[str, Any]]:
         """
         执行完整的检索流程：接收用户查询 -> 对查询进行编码 -> 根据查询类型选择合适的索引和查询向量 ->
         在选定的 Faiss 索引中搜索相似向量 -> 获取这些向量对应的原始文档元数据 -> 组合信息并返回结果。
+        这是 Retriever 的核心功能实现。
 
         Args:
             query (Union[str, Dict[str, str]]): 用户提交的查询。可以是：
@@ -1285,15 +1418,17 @@ class Retriever:
                         如果查询无效、编码失败、所选索引为空或搜索无结果，则返回空列表 `[]`。
         """
         self.logger.info(f"开始执行检索流程，目标是获取 Top-{k} 最相关的文档...")
-        self.logger.debug(f"  接收到的原始查询: {str(query)[:200]}{'...' if len(str(query))>200 else ''}, k={k}")
+        # 为了日志清晰，截断长查询字符串。
+        query_str_for_log = str(query)
+        self.logger.debug(f"  接收到的原始查询: {query_str_for_log[:200]}{'...' if len(query_str_for_log)>200 else ''}, k={k}")
 
-        query_text: Optional[str] = None        
-        query_image_path: Optional[str] = None  
-        query_type: str = "unknown"             
+        query_text: Optional[str] = None
+        query_image_path: Optional[str] = None
+        query_type: str = "unknown"
 
         # --- 步骤 1: 解析查询输入，确定查询类型和具体内容 ---
         self.logger.debug("  - Retriever步骤 1: 解析用户查询输入...")
-        if isinstance(query, str): 
+        if isinstance(query, str):
             query_text_stripped = query.strip()
             if query_text_stripped:
                 query_text = query_text_stripped
@@ -1303,44 +1438,55 @@ class Retriever:
             else:
                 self.logger.error("查询错误: 纯文本查询字符串为空或只包含空白。")
                 return []
-        elif isinstance(query, dict): 
+        elif isinstance(query, dict):
+            # 从字典中安全地获取文本和图像路径。
             query_text_from_dict = query.get('text')
             query_image_path_from_dict = query.get('image_path')
 
+            # 确保获取到的值是字符串，且去除空白后非空。
             query_text = query_text_from_dict.strip() if isinstance(query_text_from_dict, str) and query_text_from_dict.strip() else None
             query_image_path = query_image_path_from_dict.strip() if isinstance(query_image_path_from_dict, str) and query_image_path_from_dict.strip() else None
-            
-            if query_text and query_image_path: 
+
+            # 根据有效的输入组合确定查询类型。
+            if query_text and query_image_path:
                 query_type = "多模态"
                 self.logger.info(f"    查询类型确定为: {query_type}")
                 self.logger.info(f"    查询文本部分: '{query_text[:50]}{'...' if len(query_text)>50 else ''}'")
                 self.logger.info(f"    查询图像部分: '{os.path.basename(query_image_path)}'")
-            elif query_image_path: 
-                query_type = "纯图像"
-                self.logger.info(f"    查询类型确定为: {query_type}")
-                self.logger.info(f"    查询图像路径: '{os.path.basename(query_image_path)}'")
-            elif query_text: 
+            elif query_image_path:
+                # 检查图像文件是否存在
+                if os.path.exists(query_image_path) and os.path.isfile(query_image_path):
+                    query_type = "纯图像"
+                    self.logger.info(f"    查询类型确定为: {query_type}")
+                    self.logger.info(f"    查询图像路径: '{os.path.basename(query_image_path)}' (文件存在)")
+                else:
+                    self.logger.error(f"查询错误: 纯图像查询指定的图像文件路径无效或不存在: '{query_image_path}'")
+                    return []
+            elif query_text:
                 query_type = "纯文本"
                 self.logger.info(f"    查询类型确定为: {query_type} (字典输入)")
                 self.logger.info(f"    查询文本内容: '{query_text[:100]}{'...' if len(query_text)>100 else ''}'")
-            else: 
-                self.logger.error("查询错误: 查询字典无效，必须至少包含有效的 'text' 或 'image_path' 键及其对应值。")
-                return [] 
-        else: 
+            else:
+                self.logger.error("查询错误: 查询字典无效，必须至少包含有效的非空 'text' 或有效的非空 'image_path' 键及其对应值。")
+                return []
+        else:
             self.logger.error(f"查询错误: 不支持的查询类型 ({type(query)}) 或查询内容为空。查询必须是有效的非空字符串或包含有效内容的字典。")
-            return [] 
+            return []
 
         # --- 步骤 2: 使用内部的 MultimodalEncoder 对查询进行编码 ---
         self.logger.debug(f"  - Retriever步骤 2: 使用 MultimodalEncoder 对 '{query_type}' 查询进行编码...")
+        encoded_query_vectors: Dict[str, Optional[np.ndarray]]
         try:
+            # 调用 Indexer 的编码器对查询进行编码。
             encoded_query_vectors = self.encoder.encode(text=query_text, image_path=query_image_path)
             query_text_vec = encoded_query_vectors.get('text_vector')
             query_image_vec = encoded_query_vectors.get('image_vector')
             query_mean_vec = encoded_query_vectors.get('mean_vector')
-            
+
+            # 如果编码器未能生成任何向量，则无法进行检索。
             if query_text_vec is None and query_image_vec is None and query_mean_vec is None:
                  self.logger.warning("查询编码警告: MultimodalEncoder 未能为当前查询生成任何有效的特征向量。无法继续检索。")
-                 return [] 
+                 return []
             self.logger.info("    查询编码完成。")
             if query_text_vec is not None: self.logger.debug("      - 生成了文本查询向量。")
             if query_image_vec is not None: self.logger.debug("      - 生成了图像查询向量。")
@@ -1348,19 +1494,22 @@ class Retriever:
 
         except Exception as e:
             self.logger.error(f"查询编码严重错误: 在对查询进行编码时发生意外错误: {e}", exc_info=True)
-            return [] 
+            return []
 
         # --- 步骤 3: 根据查询类型选择目标 Faiss 索引和相应的查询向量 ---
+        # 这是决定使用哪个索引进行搜索的逻辑。优先级通常是 多模态 -> 文本 -> 图像。
         self.logger.debug(f"  - Retriever步骤 3: 根据查询类型 '{query_type}' 选择搜索策略 (Faiss索引和查询向量)...")
-        target_faiss_index: Optional[faiss.Index] = None   
-        search_query_vector: Optional[np.ndarray] = None   
-        selected_index_name: str = "N/A"                   
+        target_faiss_index: Optional[faiss.Index] = None   # 最终选定的 Faiss 索引对象。
+        search_query_vector: Optional[np.ndarray] = None   # 最终用于搜索的查询向量。
+        selected_index_name: str = "N/A"                   # 用于日志记录的索引名称。
 
+        # 获取当前索引中的向量数量，用于判断索引是否可用。
         text_index_ntotal = getattr(self.text_index, 'ntotal', 0)
         image_index_ntotal = getattr(self.image_index, 'ntotal', 0)
         mean_index_ntotal = getattr(self.mean_index, 'ntotal', 0)
 
         if query_type == "纯文本":
+            # 纯文本查询优先使用文本向量和文本索引。
             if query_text_vec is not None and text_index_ntotal > 0:
                 target_faiss_index = self.text_index
                 search_query_vector = query_text_vec
@@ -1371,6 +1520,7 @@ class Retriever:
                  self.logger.warning(f"无法执行纯文本查询，因为: {reason}。")
                  return []
         elif query_type == "纯图像":
+            # 纯图像查询优先使用图像向量和图像索引。
             if query_image_vec is not None and image_index_ntotal > 0:
                 target_faiss_index = self.image_index
                 search_query_vector = query_image_vec
@@ -1381,79 +1531,113 @@ class Retriever:
                 self.logger.warning(f"无法执行纯图像查询，因为: {reason}。")
                 return []
         elif query_type == "多模态":
+            # 多模态查询优先使用平均向量和平均索引。
             if query_mean_vec is not None and mean_index_ntotal > 0:
                 target_faiss_index = self.mean_index
                 search_query_vector = query_mean_vec
                 selected_index_name = "平均(Mean)索引"
                 self.logger.info(f"    搜索策略: 使用平均查询向量，在 {selected_index_name} (含 {mean_index_ntotal} 个向量) 中搜索。")
+            # 如果平均向量或平均索引不可用，尝试回退到使用文本向量在文本索引中搜索。
             elif query_text_vec is not None and text_index_ntotal > 0:
                  self.logger.warning("多模态查询警告: 平均(Mean)索引或平均查询向量不可用/索引为空。")
                  self.logger.info(f"    应用回退策略: 改为使用文本查询向量，在文本(Text)索引 (含 {text_index_ntotal} 个向量) 中搜索。")
                  target_faiss_index = self.text_index
                  search_query_vector = query_text_vec
                  selected_index_name = "文本(Text)索引 (作为多模态查询的回退)"
+            # 如果所有首选和回退策略都不可用。
             else:
                 reason_parts = []
-                if query_mean_vec is None and query_text_vec is None: reason_parts.append("平均查询向量和文本查询向量都编码失败")
-                if mean_index_ntotal == 0 and text_index_ntotal == 0: reason_parts.append(f"平均(Mean)索引(含{mean_index_ntotal}向量)和文本(Text)索引(含{text_index_ntotal}向量)都为空")
-                if not reason_parts: reason_parts.append("由于平均(Mean)索引和文本(Text)索引（用于回退）都不可用，或对应的查询向量缺失")
-                final_reason = "; ".join(reason_parts)
+                if query_mean_vec is None: reason_parts.append("平均查询向量编码失败")
+                if query_text_vec is None: reason_parts.append("文本查询向量编码失败")
+                if mean_index_ntotal == 0: reason_parts.append(f"平均(Mean)索引为空 (含{mean_index_ntotal}向量)")
+                if text_index_ntotal == 0: reason_parts.append(f"文本(Text)索引为空 (含{text_index_ntotal}向量)")
+
+                final_reason = "; ".join(reason_parts) if reason_parts else "由于所有可能的搜索策略（平均、文本回退）都不可用或对应的查询向量缺失"
+
                 self.logger.warning(f"无法执行多模态查询，因为: {final_reason}。")
                 return []
-        else: 
-             self.logger.error("内部逻辑错误: 无法为当前查询确定有效的查询类型或找不到可用的查询向量/索引组合。")
+        else:
+             # 如果查询类型是未知的，这是一个内部逻辑问题。
+             self.logger.error("内部逻辑错误: 无法为当前查询确定有效的查询类型或找不到可用的查询向量/索引组合。无法继续搜索。")
              return []
-        
+
+        # 最终确认是否成功选择了搜索目标。
         if target_faiss_index is None or search_query_vector is None:
             self.logger.error("内部错误: 搜索目标 Faiss 索引或查询向量未能正确设置，尽管已尝试选择策略。无法继续搜索。")
             return []
 
 
         # --- 步骤 4: 在选定的 Faiss 索引中执行 Top-K 相似度搜索 ---
+        # 这是使用 Faiss 核心功能的步骤。
         self.logger.debug(f"  - Retriever步骤 4: 在选定的 '{selected_index_name}' 中执行 Faiss Top-{k} 搜索...")
         try:
-            query_vector_for_faiss = search_query_vector.reshape(1, self.vector_dimension)
+            # Faiss search 方法期望输入的是一个二维数组 (batch_size, vector_dimension)。
+            # 我们的查询向量是单个向量，所以需要将其 reshape 成 (1, vector_dimension)。
+            # 确保向量是 float32 类型，Faiss 通常需要这个类型。
+            query_vector_for_faiss = search_query_vector.astype('float32').reshape(1, self.vector_dimension)
 
             self.logger.debug(f"    Faiss search: k={k}, query_vector_shape={query_vector_for_faiss.shape}")
+            # 执行 Faiss 搜索。它返回距离/得分矩阵和对应的 ID 矩阵。
             scores_matrix, internal_ids_matrix = target_faiss_index.search(query_vector_for_faiss, k)
             self.logger.debug(f"    Faiss search returned scores_matrix shape: {scores_matrix.shape}, ids_matrix shape: {internal_ids_matrix.shape}")
 
             retrieved_internal_ids: List[int] = []
             retrieved_scores: List[float] = []
-            
-            for id_val, score_val in zip(internal_ids_matrix[0], scores_matrix[0]):
-                if id_val != -1: 
-                    retrieved_internal_ids.append(int(id_val))   
-                    retrieved_scores.append(float(score_val)) 
-                else:
-                    self.logger.debug(f"    Faiss search: Encountered -1 ID, indicating fewer than k={k} results or padding.")
-            
+
+            # 遍历搜索结果。Faiss 返回的 ID 矩阵可能包含 -1，表示未找到足够多的结果或填充。
+            # 我们只收集有效的 ID (不等于 -1)。
+            if internal_ids_matrix.size > 0 and scores_matrix.size > 0: # Check if results are not empty
+                for id_val, score_val in zip(internal_ids_matrix[0], scores_matrix[0]):
+                    if id_val != -1:
+                        retrieved_internal_ids.append(int(id_val))   # 确保 ID 是整数类型。
+                        retrieved_scores.append(float(score_val)) # 确保得分是浮点数类型。
+                    else:
+                        # Faiss often pads with -1 when fewer than k results are found.
+                        self.logger.debug(f"    Faiss search: Encountered -1 ID, indicating fewer than k={k} results or padding. Stopping collection for this query.")
+                        break # Stop collecting if -1 is encountered
+            else:
+                 self.logger.debug("    Faiss search: Returned empty ID or score matrices.")
+
+
             if not retrieved_internal_ids:
-                self.logger.info(f"    Faiss 搜索在 '{selected_index_name}' 中完成，但未返回任何有效的结果 ID。")
-                return [] 
-            
+                self.logger.info(f"    Faiss 搜索在 '{selected_index_name}' 中完成，但未返回任何有效的结果 ID。可能该索引为空或没有相似度足够高的向量。")
+                return []
+
             self.logger.info(f"    Faiss 搜索在 '{selected_index_name}' 中完成，初步找到 {len(retrieved_internal_ids)} 个候选文档的 internal_id。")
 
         except Exception as e:
             self.logger.error(f"Faiss 搜索错误: 在 '{selected_index_name}' 中执行 Faiss 搜索时发生错误: {e}", exc_info=True)
-            return [] 
+            return []
 
         # --- 步骤 5: 根据检索到的 internal_ids 从 SQLite 数据库批量获取这些文档的完整元数据 ---
+        # 有了 internal_id，我们需要从数据库获取原始的文本、图像路径等信息。
         self.logger.debug(f"  - Retriever步骤 5: 使用找到的 {len(retrieved_internal_ids)} 个 internal_id，从 SQLite 数据库批量获取文档元数据...")
-        documents_map_from_db = self.indexer.get_documents_by_internal_ids(retrieved_internal_ids)
-        self.logger.info(f"    已成功从数据库中获取了 {len(documents_map_from_db)} 条与 internal_id 对应的文档记录。")
+        documents_map_from_db: Dict[int, Dict[str, Any]]
+        if retrieved_internal_ids:
+             documents_map_from_db = self.indexer.get_documents_by_internal_ids(retrieved_internal_ids)
+             self.logger.info(f"    已成功从数据库中获取了 {len(documents_map_from_db)} 条与 internal_id 对应的文档记录。")
+        else:
+             # 如果 Faiss 没有返回有效 ID，则无需查询数据库。
+             self.logger.info("    由于 Faiss 未返回有效 ID，跳过数据库元数据获取步骤。")
+             documents_map_from_db = {}
+
 
         # --- 步骤 6: 组合结果：将元数据与相似度得分结合，并保持 Faiss 返回的原始排序 ---
+        # Faiss 返回的结果已经是按相似度排序的，我们只需将元数据和得分结合起来。
         self.logger.debug(f"  - Retriever步骤 6: 组合文档元数据与相似度得分，并按 Faiss 原始顺序排列...")
-        final_retrieved_docs: List[Dict[str, Any]] = [] 
-        
+        final_retrieved_docs: List[Dict[str, Any]] = []
+
+        # 遍历 Faiss 返回的 internal_id 和 score 列表（它们是同步排序的）。
         for internal_id, score in zip(retrieved_internal_ids, retrieved_scores):
+            # 从数据库查询结果字典中查找对应的文档元数据。
             doc_data_from_db = documents_map_from_db.get(internal_id)
-            
+
             if doc_data_from_db:
-                doc_data_from_db['score'] = score 
+                # 如果找到了元数据，将相似度得分添加到文档字典中。
+                doc_data_from_db['score'] = score
                 final_retrieved_docs.append(doc_data_from_db)
             else:
+                # 如果 Faiss 返回的 ID 在数据库中找不到，说明存在数据不一致。这是一个警告，需要记录。
                 self.logger.warning(f"数据不一致警告: 在数据库中未能找到 Faiss 返回的 internal_id: {internal_id}。")
                 self.logger.warning(f"                 这可能表示 Faiss 索引与数据库元数据之间存在不一致。将跳过此条检索结果。")
 
@@ -1465,7 +1649,7 @@ class Retriever:
         """
         关闭 Retriever 实例时调用的清理方法。
         Retriever 本身通常没有需要显式关闭的外部资源 (因为它主要依赖于 Indexer 提供的资源)。
-        此方法主要用于记录 Retriever 的关闭事件。
+        此方法主要用于记录 Retriever 的关闭事件。这是负责任的结束流程的一部分。
         """
         self.logger.info("开始关闭 Retriever 实例...")
         # 通常无需执行特定的资源释放操作，因为 Encoder, Faiss索引, DB连接等由 Indexer 管理。
@@ -1473,6 +1657,8 @@ class Retriever:
 
 # -------------------------------------------------------------------------------------------------
 # 生成器类 (Generator)
+# Generator 是系统的“问答大脑”，它根据检索到的信息生成用户最终看到的自然语言答案。
+# 它的表现依赖于底层的LLM能力和构建Prompt的质量。
 # -------------------------------------------------------------------------------------------------
 class Generator:
     """
@@ -1490,67 +1676,70 @@ class Generator:
     API Key 的获取优先级如下：
     - 首先，从构造函数参数 `api_key` 获取。
     - 如果构造函数未提供，则尝试从环境变量 `ZHIPUAI_API_KEY` 读取。
-    如果没有有效的 API Key，Generator 将无法工作。
+    如果没有有效的 API Key，Generator 将无法工作。我必须确保 API Key 的可用性。
     """
     def __init__(self, api_key: Optional[str] = None, model_name: str = "glm-4-flash"):
         """
-        初始化 Generator 实例。
+        初始化 Generator 实例。我需要确保能够成功连接到智谱AI的API服务。
 
         Args:
             api_key (Optional[str]): ZhipuAI 的 API Key。如果在此处提供，将优先使用这个 Key。
                                      如果为 None，则会尝试从环境变量 `ZHIPUAI_API_KEY` 中读取。
+                                     API Key 是调用服务的凭证，必须确保获取到。
             model_name (str): 指定要调用的 ZhipuAI 平台的模型名称。例如 "glm-4-flash", "glm-4" 等。
                               不同的模型具有不同的能力、速度、上下文窗口大小和调用成本。
-                              默认值为 "glm-4-flash"，这是一个速度较快且性价比较高的模型。
-                              请注意: "glm-4-flash" 已经是智谱AI的轻快版模型，平衡了性能与资源。
-                              若需调整，请参考智谱AI官方文档选择合适的模型。
+                              默认值为 "glm-4-flash"，这是一个速度较快且性价比较高的模型，适合示例使用。
                               请查阅 ZhipuAI 官方文档以获取最新的可用模型列表和特性。
 
         Raises:
             ValueError: 如果 `api_key` 参数为 None 并且在环境变量 `ZHIPUAI_API_KEY` 中也找不到有效的 Key。
-                        没有 API Key，Generator 将无法与 ZhipuAI 服务通信。
+                        没有 API Key，Generator 将无法与 ZhipuAI 服务通信，这是致命的初始化失败。
             RuntimeError: 如果 ZhipuAI 客户端在初始化过程中发生其他错误 (例如，网络问题、`zhipuai`库安装问题等)。
         """
         self.logger = logging.getLogger(__name__ + "." + self.__class__.__name__)
         self.logger.info(f"开始初始化 Generator，准备使用 ZhipuAI 模型: {model_name}")
-        
+
         # 决定最终使用的 API Key：优先使用通过参数传入的，否则尝试从环境变量获取。
         final_api_key = api_key if api_key else os.getenv("ZHIPUAI_API_KEY")
 
-        # 检查是否成功获取到 API Key。
+        # 检查是否成功获取到 API Key。如果获取不到，必须报错并终止初始化。
         if not final_api_key:
             error_message = ("Generator 初始化错误: ZhipuAI API Key 未提供。\n"
-                             "请通过以下方式之一提供 API Key：\n"
+                             "调用大语言模型需要有效的 API Key。请通过以下方式之一提供 API Key：\n"
                              "  1. 在初始化 Generator 时，通过 'api_key' 参数传入。\n"
                              "  2. 将 API Key 设置到名为 'ZHIPUAI_API_KEY' 的环境变量中。")
-            self.logger.critical(error_message) 
+            self.logger.critical(error_message)
             raise ValueError(error_message)
         else:
+            # 为了安全，不记录完整的 API Key，只记录获取成功。
             self.logger.info("成功获取到 ZhipuAI API Key (来源可能是参数或环境变量)。")
 
         try:
+            # 初始化 ZhipuAI 客户端。
             self.client = zhipuai.ZhipuAI(api_key=final_api_key)
             self.model_name = model_name
             self.logger.info(f"ZhipuAI 客户端已使用模型 '{self.model_name}' 成功初始化。")
         except Exception as e:
+             # 捕获客户端初始化过程中可能发生的各种错误，并提供诊断建议。
              self.logger.error(f"Generator 初始化错误: 初始化 ZhipuAI 客户端失败。错误详情: {e}", exc_info=True)
              self.logger.error(f"请确认以下几点：")
              self.logger.error(f"  - 提供的 API Key 是否有效且具有调用模型 '{self.model_name}' 的权限。")
              self.logger.error(f"  - 'zhipuai' Python 库是否已正确安装 (例如，通过 pip install zhipuai)。")
              self.logger.error(f"  - 网络连接是否正常，能否访问 ZhipuAI API 服务端点。")
-             raise RuntimeError(f"ZhipuAI客户端初始化失败: {e}") from e 
-        
-        self.logger.info("Generator 初始化成功完成。")
+             raise RuntimeError(f"ZhipuAI客户端初始化失败: {e}") from e
+
+        self.logger.info("Generator 初始化成功完成。我已经准备好与大模型交互，生成答案了。")
 
     def generate(self, query: str, context: List[Dict[str, Any]]) -> str:
         """
         根据用户提供的原始查询和由 Retriever 返回的文档上下文列表，调用大语言模型 (LLM) 生成回答。
+        这是RAG流程的最后一个关键步骤。
 
         Args:
             query (str): 用户提出的原始问题或查询字符串。
             context (List[Dict[str, Any]]): 一个文档字典列表，通常由 Retriever 的 `retrieve` 方法返回。
-                                 每个字典代表一个检索到的相关文档，应包含诸如 'id', 'text', 
-                                 'image_path', 'score' 等信息。
+                                 每个字典代表一个检索到的相关文档，应包含诸如 'id', 'text',
+                                 'image_path', 'score' 等信息。这些信息将作为LLM生成答案的依据。
 
         Returns:
             str: 由大语言模型生成并经过基本后处理的文本响应。
@@ -1561,84 +1750,113 @@ class Generator:
         self.logger.info(f"  使用 {len(context)} 个检索到的文档作为生成上下文。")
 
         # --- 步骤 1: 构建发送给 LLM 的 Prompt (通常表现为消息列表 `messages`) ---
+        # Prompt的质量直接影响LLM的输出。我必须仔细构建系统指令和格式化上下文。
         self.logger.debug("  - Generator步骤 1: 构建 Prompt (包含系统指令、上下文和用户查询)...")
-        messages_for_llm = self._build_messages(query, context)
+        messages_for_llm: List[Dict[str, str]] = []
+        try:
+            messages_for_llm = self._build_messages(query, context)
 
-        if messages_for_llm:
-            if messages_for_llm[0]['role'] == 'system':
-                 system_prompt_content = messages_for_llm[0]['content']
-                 context_start_marker = "# 参考文档:"
-                 context_start_index = system_prompt_content.find(context_start_marker)
-                 if context_start_index != -1:
-                     system_instructions_part = system_prompt_content[:context_start_index].strip()
-                     self.logger.debug(f"    生成的系统消息 (指令部分): {system_instructions_part[:400]}{'...' if len(system_instructions_part)>400 else ''}")
-                 else: 
-                     self.logger.debug(f"    生成的系统消息 (部分): {system_prompt_content[:400]}{'...' if len(system_prompt_content)>400 else ''}")
+            if messages_for_llm:
+                # 为了日志清晰，打印系统指令和用户查询的部分内容。
+                if messages_for_llm[0]['role'] == 'system':
+                     system_prompt_content = messages_for_llm[0]['content']
+                     context_start_marker = "# 参考文档:"
+                     context_start_index = system_prompt_content.find(context_start_marker)
+                     if context_start_index != -1:
+                         system_instructions_part = system_prompt_content[:context_start_index].strip()
+                         self.logger.debug(f"    生成的系统消息 (指令部分): {system_instructions_part[:400]}{'...' if len(system_instructions_part)>400 else ''}")
+                     else: # Fallback if marker not found (unlikely with current prompt)
+                         self.logger.debug(f"    生成的系统消息 (部分): {system_prompt_content[:400]}{'...' if len(system_prompt_content)>400 else ''}")
 
-            if len(messages_for_llm) > 1 and messages_for_llm[1]['role'] == 'user':
-                 self.logger.debug(f"    生成的用户消息 (原始查询): {messages_for_llm[1]['content']}")
-        self.logger.debug("    Prompt 构建完成。")
+                if len(messages_for_llm) > 1 and messages_for_llm[1]['role'] == 'user':
+                     self.logger.debug(f"    生成的用户消息 (原始查询): {messages_for_llm[1]['content']}")
+            self.logger.debug("    Prompt 构建完成。")
+        except Exception as e_build_prompt:
+             self.logger.error(f"错误: 构建 Prompt 时发生异常: {e_build_prompt}", exc_info=True)
+             return "抱歉，在准备向语言模型发送请求时遇到了内部错误（Prompt构建失败）。"
+
 
         # --- 步骤 2: 调用 ZhipuAI Chat Completions API ---
+        # 这是与外部API交互的关键步骤，必须处理各种可能的API错误。
         self.logger.info(f"  - Generator步骤 2: 开始调用 ZhipuAI Chat API (使用模型: {self.model_name})...")
-        llm_raw_response_content = "抱歉，在尝试从语言模型生成响应时遇到了一个未知问题。" 
+        llm_raw_response_content = "抱歉，在尝试从语言模型生成响应时遇到了一个未知问题。" # 默认错误消息
         try:
+            # 确保 messages_for_llm 是有效的列表
+            if not isinstance(messages_for_llm, list) or not messages_for_llm:
+                 self.logger.error("错误：构建的 Prompt 消息列表无效或为空，无法调用 LLM API。")
+                 return "抱歉，在准备向语言模型发送请求时遇到了内部错误（Prompt为空）。"
+
+            # 调用 API，传入模型名称、消息列表、温度和最大Token数。
+            # temperature 控制随机性，max_tokens 控制输出长度。
             api_response = self.client.chat.completions.create(
-                model=self.model_name,      
-                messages=messages_for_llm,   
-                temperature=0.7,            
-                max_tokens=1500,            
+                model=self.model_name,
+                messages=messages_for_llm,
+                temperature=0.7,            # 一个常用的值，平衡创造性和事实性
+                max_tokens=1500,            # 控制生成的最长响应
+                # stream=False # 确保不是流式输出，等待完整响应
             )
-            
-            if api_response.choices and api_response.choices[0].message and api_response.choices[0].message.content:
-                llm_raw_response_content = api_response.choices[0].message.content
-                self.logger.info(f"    ZhipuAI API 调用成功。已接收到模型的响应。")
+
+            # 检查API响应的结构，提取生成的文本内容。
+            # ZhipuAI SDK v2 的响应结构可能略有不同，需要适配
+            if api_response and api_response.choices and len(api_response.choices) > 0:
+                 choice = api_response.choices[0]
+                 if choice.message and choice.message.content:
+                      llm_raw_response_content = choice.message.content
+                      self.logger.info(f"    ZhipuAI API 调用成功。已接收到模型的响应。")
+                 else:
+                      self.logger.warning("    ZhipuAI API 调用似乎成功，但响应中的 message 或 content 为空。将使用默认错误消息。")
+                      self.logger.debug(f"    实际的 API choice 对象: {choice.model_dump_json(indent=2)}") # Use model_dump_json for Pydantic models
             else:
-                self.logger.warning("    ZhipuAI API 调用似乎成功，但响应结构不符合预期 (choices, message, or content为空)。将使用默认错误消息。")
+                self.logger.warning("    ZhipuAI API 调用似乎成功，但响应结构不符合预期 (choices 列表为空或不存在)。将使用默认错误消息。")
                 # Log the actual response for debugging if it's not as expected
-                self.logger.debug(f"    Actual API response object: {api_response.model_dump_json(indent=2)}")
+                if api_response:
+                    self.logger.debug(f"    实际的 API 响应对象: {api_response.model_dump_json(indent=2)}") # Use model_dump_json
+                else:
+                    self.logger.debug("    实际的 API 响应对象为 None 或 False。")
 
 
+            # 记录Token使用情况，这对成本控制很重要。
             if hasattr(api_response, 'usage') and api_response.usage:
-                completion_tokens = api_response.usage.completion_tokens 
-                prompt_tokens = api_response.usage.prompt_tokens         
-                total_tokens = api_response.usage.total_tokens           
+                completion_tokens = getattr(api_response.usage, 'completion_tokens', 'N/A')
+                prompt_tokens = getattr(api_response.usage, 'prompt_tokens', 'N/A')
+                total_tokens = getattr(api_response.usage, 'total_tokens', 'N/A')
                 self.logger.info(f"      Token 使用情况 -> 输入提示: {prompt_tokens} tokens, 生成响应: {completion_tokens} tokens, 总计: {total_tokens} tokens.")
             else:
                 self.logger.info("      未能从 API 响应中获取详细的 token 使用情况。")
 
-
+        # 处理不同类型的 ZhipuAI API 调用错误，提供有针对性的错误信息。
+        # 注意：错误类型可能随 zhipuai SDK 版本变化，以下是基于常见情况的示例。
         except zhipuai.APIStatusError as e_status:
-             self.logger.error(f"  错误：ZhipuAI API 返回了状态错误。")
+             self.logger.error(f"  错误：ZhipuAI API 返回了状态错误。这通常是由于请求参数、权限或账户问题。")
              self.logger.error(f"        HTTP 状态码: {e_status.status_code}")
-             # Accessing type and message safely
-             error_type = getattr(e_status, 'type', 'N/A')
-             error_message_detail = getattr(e_status, 'message', str(e_status))
-             self.logger.error(f"        错误类型: {error_type}")
-             self.logger.error(f"        错误消息: {error_message_detail}")
+             # Try to get more details if available in the response body
+             error_body = getattr(e_status, 'body', None)
+             error_message_detail = str(error_body) if error_body else str(e_status)
+             self.logger.error(f"        错误详情: {error_message_detail}")
              llm_raw_response_content = (f"抱歉，调用语言模型时遇到 API 错误 (状态码: {e_status.status_code})。 "
-                                         f"请检查您的 API Key、账户状态或请求参数，或稍后重试。错误信息: {error_message_detail}")
+                                         f"请检查您的 API Key、账户状态或请求参数，或稍后重试。错误信息: {error_message_detail[:200]}{'...' if len(error_message_detail)>200 else ''}") # Limit length
         except zhipuai.APIConnectionError as e_conn:
              self.logger.error(f"  错误：无法连接到 ZhipuAI API 服务器: {e_conn}")
              llm_raw_response_content = ("抱歉，无法连接到语言模型服务。 "
                                          "请检查您的网络连接，或确认 ZhipuAI API 端点是否正确且可访问。")
-        except zhipuai.APIRequestFailedError as e_req_failed:
+        except zhipuai.APIRequestFailedError as e_req_failed: # Catching a potentially relevant error type
             self.logger.error(f"  错误: ZhipuAI API 请求失败: {e_req_failed}")
-            error_message_detail = getattr(e_req_failed, 'message', str(e_req_failed))
-            llm_raw_response_content = f"抱歉，语言模型API请求失败。可能原因包括请求参数无效或服务内部错误。详情: {error_message_detail}"
+            error_message_detail = str(e_req_failed) # Get the string representation
+            llm_raw_response_content = f"抱歉，语言模型API请求失败。可能原因包括请求参数无效或服务内部错误。详情: {error_message_detail[:200]}{'...' if len(error_message_detail)>200 else ''}" # Limit length
         except zhipuai.APITimeoutError as e_timeout:
             self.logger.error(f"  错误: ZhipuAI API 请求超时: {e_timeout}")
             llm_raw_response_content = "抱歉，与语言模型的通信超时。请稍后重试，或检查网络延迟。"
         except Exception as e_unknown:
-             self.logger.error(f"  错误：调用 LLM 时发生未预料的异常: {e_unknown}", exc_info=True) 
+             self.logger.error(f"  错误：调用 LLM 时发生未预料的异常: {e_unknown}", exc_info=True)
              llm_raw_response_content = ("抱歉，在与语言模型交互并生成响应的过程中，发生了一个意外的内部错误。 "
                                          "请查看详细日志以获取更多信息。")
 
         # --- 步骤 3: 对 LLM 的原始响应进行后处理 ---
+        # 对原始响应进行清理，使其更适合最终展示。
         self.logger.debug("  - Generator步骤 3: 对 LLM 的原始响应进行后处理...")
         final_processed_response = self._postprocess_response(llm_raw_response_content)
         self.logger.debug("    LLM 响应后处理完成。")
-        
+
         self.logger.info("LLM 响应生成流程结束。")
         return final_processed_response
 
@@ -1650,73 +1868,95 @@ class Generator:
             并在此处注入检索到的上下文信息（格式化为文本）。
         2.  **User Message (`role: "user"`)**: 包含用户原始的查询字符串。
 
+        构建高质量的Prompt是引导LLM输出正确答案的关键，我必须仔细设计这里的指令。
+
         Args:
             query (str): 用户的原始查询。
-            context (List[Dict[str, Any]]): Retriever 返回的上下文文档列表。每个文档字典应包含 'id', 'text', 'score' 等键。
+            context (List[Dict[str, Any]]): Retriever 返回的上下文文档列表。每个文档字典应包含 'id', 'text',
+                                 'image_path', 'score' 等键。
 
         Returns:
             List[Dict[str, str]]: 一个包含字典的列表，每个字典有 'role' 和 'content' 键，
                                   可以直接传递给 ZhipuAI Chat API 的 `messages` 参数。
+                                  如果发生内部错误，可能返回空列表。
         """
         self.logger.debug("开始构建用于 LLM 的消息列表...")
-        system_message_content = """
-        你是一个高度专业且严谨的文档问答助手。你的任务是根据下面提供的 "参考文档" 部分中的信息来精确地回答用户提出的问题。
+        # 定义系统消息的内容，包含详细的角色设定和行为约束。
+        system_message_content_parts = [
+            "你是一个高度专业且严谨的文档问答助手。你的任务是根据下面提供的 \"参考文档\" 部分中的信息来精确地回答用户提出的问题。",
+            "\n# 核心指令与行为准则:",
+            "1.  **严格依据参考信息**: 你的回答必须 **完全且仅** 基于 \"参考文档\" 中明确提供的信息。严禁使用任何你在训练数据中学习到的外部知识、个人观点、进行任何形式的推断、猜测或联想超出文档内容。这是确保回答可靠性的最重要原则。",
+            "2.  **处理信息不足**: 如果 \"参考文档\" 中的信息不足以回答用户的问题，或者问题与所有提供的文档内容均不相关，你必须明确指出信息的缺乏。标准回答是：“根据提供的参考文档，我无法找到回答该问题所需的信息。”或者类似表述，如“参考文档中没有包含足够的信息来回答关于...的问题。”。不要试图编造答案，诚实地报告信息不足是专业的表现。",
+            "3.  **关于图像内容的理解**: 你无法直接“看到”或解析图像文件本身的内容。你对图像的理解 **必须且只能** 来源于 \"参考文档\" 中与该图像关联的 **文本描述内容**，以及文档中可能提及的 **图像文件名**。绝不能声称你能直接感知图像内容或对其进行视觉分析。",
+            "4.  **回答涉及图像的问题**:",
+            "    - 如果用户的问题涉及到某张图片（例如，通过图片文件名或描述性提问），请首先在 \"参考文档\" 的文本描述中仔细查找是否有与该图片相关的说明。",
+            "    - 如果找到了相关的文本描述，请依据该文本描述来回答。",
+            "    - 如果文档中只提供了图片的文件名但没有相应的文本描述，你可以提及这个文件名（例如，“文档提到了一个名为 'circuit_diagram.png' 的关联图片”），并明确说明文档中缺少对该图片内容的具体文字描述，因此无法进一步回答。",
+            "    - 如果文档中既没有图片描述也没有文件名信息，或者问题与文档中提及的任何图片都无关，请按照上述第2条“处理信息不足”的规则进行回复。",
+            "5.  **引用来源 (推荐)**: 在可能的情况下，如果你的答案基于某一个或某几个特定的参考文档，请在回答中指明这些来源。例如：“根据文档 ID 'BGREF_01' 的描述...” 或 “参考文档 1 (ID: XXX) 和文档 3 (ID: YYY) 提到...”。这有助于用户追溯信息源，提高答案的可信度。",
+            "6.  **回答风格与格式**: 你的回答应尽可能地简洁、清晰、直接，并且专业。避免使用冗长的前缀、不必要的客套话或模棱两可的表述。如果答案包含多个要点，可以使用列表或分点来组织，以提高可读性。",
+            "\n# 参考文档:",
+            "--- 开始参考文档部分 ---"
+        ]
+        system_message_content = "\n".join(system_message_content_parts).strip()
 
-        # 核心指令与行为准则:
-        1.  **严格依据参考信息**: 你的回答必须 **完全且仅** 基于 "参考文档" 中明确提供的信息。严禁使用任何你在训练数据中学习到的外部知识、个人观点、进行任何形式的推断、猜测或联想超出文档内容。
-        2.  **处理信息不足**: 如果 "参考文档" 中的信息不足以回答用户的问题，或者问题与所有提供的文档内容均不相关，你必须明确指出信息的缺乏。标准回答是：“根据提供的参考文档，我无法找到回答该问题所需的信息。”或者类似表述，如“参考文档中没有包含足够的信息来回答关于...的问题。”。不要试图编造答案。
-        3.  **关于图像内容的理解**: 你无法直接“看到”或解析图像。你对图像的理解 **必须且只能** 来源于 "参考文档" 中与该图像关联的 **文本描述内容**，以及文档中可能提及的 **图像文件名**。绝不能声称你能直接感知图像内容。
-        4.  **回答涉及图像的问题**:
-            - 如果用户的问题涉及到某张图片（例如，通过图片文件名或描述性提问），请首先在 "参考文档" 的文本描述中仔细查找是否有与该图片相关的说明。
-            - 如果找到了相关的文本描述，请依据该文本描述来回答。
-            - 如果文档中只提供了图片的文件名但没有相应的文本描述，你可以提及这个文件名（例如，“文档提到了一个名为 'circuit_diagram.png' 的关联图片”），并明确说明文档中缺少对该图片内容的具体文字描述，因此无法进一步回答。
-            - 如果文档中既没有图片描述也没有文件名信息，或者问题与文档中提及的任何图片都无关，请按照上述第2条“处理信息不足”的规则进行回复。
-        5.  **引用来源 (推荐)**: 在可能的情况下，如果你的答案基于某一个或某几个特定的参考文档，请在回答中指明这些来源。例如：“根据文档 ID 'BGREF_01' 的描述...” 或 “参考文档 1 (ID: XXX) 和文档 3 (ID: YYY) 提到...”。这有助于用户追溯信息源。
-        6.  **回答风格与格式**: 你的回答应尽可能地简洁、清晰、直接，并且专业。避免使用冗长的前缀、不必要的客套话或模棱两可的表述。如果答案包含多个要点，可以使用列表或分点来组织，以提高可读性。
-
-        # 参考文档:
-        --- 开始参考文档部分 ---
-        """.strip() 
-
-        context_parts_for_prompt: List[str] = [] 
+        context_parts_for_prompt: List[str] = []
+        # 检查是否有检索到的上下文。如果没有，需要告知LLM。
         if not context:
             self.logger.info("    注意: 未向LLM提供任何检索到的上下文文档 (可能是因为检索无结果)。")
             context_parts_for_prompt.append("\n（系统提示：本次未能从知识库中检索到与用户问题相关的文档。请基于此情况进行回答，并遵循“处理信息不足”的规则。）")
         else:
+            # 遍历每个检索到的文档，将其格式化为易于LLM理解的文本块。
             self.logger.info(f"    正在将 {len(context)} 个检索到的文档格式化为 LLM 的上下文...")
             for i, doc_info in enumerate(context):
-                doc_id = doc_info.get('id', '未知ID')
-                score_value = doc_info.get('score', 'N/A') 
-                text_content = doc_info.get('text', '无可用文本内容')
-                image_file_path = doc_info.get('image_path') 
+                doc_id = doc_info.get('id', '未知ID') # 获取文档ID，提供默认值。
+                score_value = doc_info.get('score', 'N/A') # 获取相关度得分。
+                text_content = doc_info.get('text', '无可用文本内容') # 获取文本内容，提供默认值。
+                image_file_path = doc_info.get('image_path') # 获取图像路径。
 
-                image_info_str = f"关联图片文件名: '{os.path.basename(image_file_path)}'" if image_file_path else "无明确关联的图片信息"
+                # 格式化图像信息，如果存在图像路径的话。
+                image_filename = os.path.basename(image_file_path) if image_file_path else None
+                image_info_str = f"关联图片文件名: '{image_filename}'" if image_filename else "无明确关联的图片信息"
 
-                max_text_len_for_llm = 700 
+                # 截断过长的文本内容，避免Prompt超出LLM的上下文窗口限制。
+                # 需要估算Token长度而不是字符长度，但简单截断作为近似。
+                max_text_len_for_llm = 700 # Character limit (approximate token limit)
                 truncated_text_content = text_content[:max_text_len_for_llm] + \
                                          ('...' if len(text_content) > max_text_len_for_llm else '')
 
-                context_parts_for_prompt.append(f"\n--- 参考文档 {i+1} ---") 
-                context_parts_for_prompt.append(f"  原始文档ID: {doc_id}")
-                context_parts_for_prompt.append(f"  与查询的相关度得分: {score_value:.4f}" if isinstance(score_value, float) else f"  与查询的相关度得分: {score_value}")
-                context_parts_for_prompt.append(f"  文本内容摘要: {truncated_text_content}")
-                context_parts_for_prompt.append(f"  {image_info_str}")
+                # 构建单个文档的格式化字符串。
+                doc_context_parts = [
+                    f"\n--- 参考文档 {i+1} ---", # 添加文档分隔符和编号。
+                    f"  原始文档ID: {doc_id}", # 添加原始ID。
+                    f"  与查询的相关度得分: {score_value:.4f}" if isinstance(score_value, float) else f"  与查询的相关度得分: {score_value}", # 添加相关度得分，如果是浮点数则格式化。
+                    f"  文本内容摘要: {truncated_text_content}", # 添加文本内容摘要。
+                    f"  {image_info_str}" # 添加图像信息。
+                ]
+                context_parts_for_prompt.extend(doc_context_parts)
 
+        # 将所有文档的格式化字符串合并。
         formatted_context_section = "\n".join(context_parts_for_prompt)
+        # 将格式化后的上下文添加到系统消息的末尾。
         system_message_content += "\n" + formatted_context_section + "\n--- 结束参考文档部分 ---"
 
+        # 构建最终的消息列表，包括系统消息和用户消息。
         final_messages: List[Dict[str, str]] = [
-            {"role": "system", "content": system_message_content}, 
-            {"role": "user", "content": query}                     
+            {"role": "system", "content": system_message_content},
+            {"role": "user", "content": query}
         ]
         self.logger.debug(f"为 LLM 构建的消息列表完成。共 {len(final_messages)} 条消息。")
+        # 增加一个简单的验证，确保内容不是空的
+        if not system_message_content.strip() or not query.strip():
+            self.logger.error("错误：构建的系统消息或用户查询内容为空！")
+            return [] # Return empty list to indicate failure
+
         return final_messages
 
     def _postprocess_response(self, llm_raw_response: str) -> str:
         """
         对从 LLM API 获取的原始响应字符串进行基本的后处理。
         目前主要执行去除首尾空白字符的操作。
-        未来可以根据需要在这里添加更复杂的处理逻辑。
+        未来可以根据需要在这里添加更复杂的处理逻辑，例如移除特定的模型习语、修正格式等。
 
         Args:
             llm_raw_response (str): 从 LLM API 收到的原始文本响应。
@@ -1725,13 +1965,21 @@ class Generator:
             str: 经过后处理的文本响应，准备好呈现给用户或用于后续流程。
         """
         self.logger.debug(f"开始对 LLM 原始响应进行后处理。原始响应 (前100字符): '{llm_raw_response[:100]}...'")
+        # 主要执行去除首尾空白
         processed_response = llm_raw_response.strip()
-        
-        # 示例：移除特定前缀 (如果模型经常添加)
-        # unwanted_prefix = "根据您提供的参考文档，"
-        # if processed_response.startswith(unwanted_prefix):
-        #     processed_response = processed_response[len(unwanted_prefix):].strip()
-        #     self.logger.debug(f"  移除了不希望的前缀 '{unwanted_prefix}'。")
+
+        # 可以在这里添加更多后处理逻辑，例如：
+        # 1. 移除模型可能添加的冗余前缀或后缀。
+        #    Example:
+        #    prefixes_to_remove = ["好的，根据您提供的文档，", "根据参考文档："]
+        #    for prefix in prefixes_to_remove:
+        #        if processed_response.startswith(prefix):
+        #            processed_response = processed_response[len(prefix):].strip()
+        #            self.logger.debug(f"  移除了前缀 '{prefix}'。")
+        #            break # Assuming only one prefix needs removal
+        #
+        # 2. 格式修正（例如，确保列表格式正确）。
+        # 3. 敏感信息过滤（如果需要）。
 
         self.logger.debug(f"LLM 响应后处理完成。处理后响应 (前100字符): '{processed_response[:100]}...'")
         return processed_response
@@ -1739,99 +1987,120 @@ class Generator:
     def close(self):
         """
         关闭 Generator 实例时调用的清理方法。
-        ZhipuAI 客户端通常不需要显式关闭。
+        ZhipuAI 客户端通常不需要显式关闭。此方法主要用于记录Generator的生命周期结束。
         """
         self.logger.info("开始关闭 Generator 实例...")
+        # ZhipuAI 客户端通常由其内部管理连接，无需显式关闭。
+        # 如果未来需要管理特定资源（如文件句柄），应在此处添加关闭逻辑。
         self.logger.info("Generator 实例关闭完成。")
 
 # -------------------------------------------------------------------------------------------------
 # 主程序执行入口 (示例使用流程)
+# This is an end-to-end usage example demonstrating how to initialize components and execute the RAG flow.
+# I will ensure each step is clear, with appropriate error handling and logging.
 # -------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     # =============================================================================================
-    # 步骤 0: 配置运行参数和输出目录 (，请在这里按需修改！)
+    # Step 0: Configure Run Parameters and Output Directory (Important! Modify as needed!)
+    # This is a critical setup phase. Ensure all paths and configurations are correct.
     # =============================================================================================
-    
-    # --- 用户可配置的运行标识符 ---
-    # 请为本次运行设置一个有意义的描述性名称，例如项目名、实验批次等。
-    # 这将作为顶级输出目录名称的一部分，方便区分和查找不同运行的产出。
-    RUN_IDENTIFIER_BASE: str = "Multimodal_RAG_System_Run" # 使用英文以保证跨平台兼容性
-    
-    # 清理运行标识符，确保它能作为有效目录名。
-    sanitized_run_identifier: str = sanitize_filename(RUN_IDENTIFIER_BASE, max_length=50) 
 
-    # --- 构建本次运行的顶级输出目录 ---
-    # 目录名格式: [清理后的运行标识符]_[时间戳YYYYMMDD_HHMMSS]
-    run_timestamp: str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    OUTPUT_BASE_DIR: str = f"{sanitized_run_identifier}_{run_timestamp}"
-    
+    # --- User-configurable Run Identifier (Used as the fixed top-level output directory name) ---
+    # Set a meaningful descriptive name for this run, e.g., project name or system identifier.
+    # This name, after sanitization, will be used directly as the top-level output directory name.
+    # Note: Running the script multiple times with the same identifier will overwrite content in the output directory.
+    RUN_IDENTIFIER_BASE: str = "multimodal_rag_system_output" # Example: Fixed base name for the output directory
+
+    # Sanitize the run identifier to ensure it's a valid directory name.
+    sanitized_run_identifier: str = sanitize_filename(RUN_IDENTIFIER_BASE, max_length=50)
+
+    # --- Construct the Fixed Top-Level Output Directory ---
+    # The directory name now directly uses the sanitized run identifier, without a timestamp.
+    OUTPUT_BASE_DIR: str = sanitized_run_identifier
+
+    # Create the output directory (exist_ok=True prevents errors if it already exists).
+    # Subsequent runs will reuse this directory.
     os.makedirs(OUTPUT_BASE_DIR, exist_ok=True)
 
-    # --- 配置日志记录 ---
-    LOG_DIR: str = os.path.join(OUTPUT_BASE_DIR, "run_logs")
+    # --- Configure Logging ---
+    # Log files will now be located in this fixed top-level directory under the 'logs' subdirectory.
+    # Note: The log file mode is still 'w' (write/overwrite), overwriting the old log file on each run.
+    # If you need to append logs, change mode='w' to mode='a' in the setup_logging function.
+    LOG_DIR: str = os.path.join(OUTPUT_BASE_DIR, "logs") # Log subdirectory name (English)
     os.makedirs(LOG_DIR, exist_ok=True)
-    LOG_FILE_PATH: str = os.path.join(LOG_DIR, "system_execution_log.txt")
-    setup_logging(LOG_FILE_PATH) 
+    # Define the full path for the log file.
+    LOG_FILE_PATH: str = os.path.join(LOG_DIR, "system_execution_log.txt") # Log file name (English)
+    setup_logging(LOG_FILE_PATH) # Call the logging setup function.
 
     logger.info("\n" + "="*80)
-    logger.info("========= Multimodal Retrieval Augmented Generation (RAG) System =========")
-    logger.info("=========                     Main Program Execution Start               =========")
+    logger.info("========= Multimodal Retrieval-Augmented Generation (RAG) System =========") # English title
+    logger.info("=========                     Main Execution Start                   =========") # English title
     logger.info("="*80 + "\n")
-    logger.info(f"User Defined Run Identifier (Base): {RUN_IDENTIFIER_BASE}")
-    logger.info(f"Sanitized Run Identifier: {sanitized_run_identifier}")
-    logger.info(f"All output data will be saved in the directory: {os.path.abspath(OUTPUT_BASE_DIR)}")
+    logger.info(f"User-defined run identifier (used as fixed directory name): {RUN_IDENTIFIER_BASE}")
+    logger.info(f"Sanitized run identifier (final directory name): {sanitized_run_identifier}")
+    logger.info(f"All output data will be saved to the fixed top-level directory: {os.path.abspath(OUTPUT_BASE_DIR)}")
+    logger.warning("NOTE: This top-level output directory name is fixed. Subsequent runs with the same identifier will OVERWRITE content in this directory (including logs, database, indices, and query results).") # English warning
 
-    # --- 数据源配置文件路径 ---
+    # --- Data Source Configuration ---
+    # Source of the input data. Ensure paths are correct.
     JSON_DATA_PATH: str = 'data.json'
     IMAGE_DIR_PATH: str = 'images'
-    logger.info(f"Data Source Config: JSON Metadata File='{JSON_DATA_PATH}', Image Directory='{IMAGE_DIR_PATH}'")
+    logger.info(f"Data source config: JSON metadata file='{JSON_DATA_PATH}', Image directory='{IMAGE_DIR_PATH}'")
 
-    # --- 持久化存储文件路径定义 ---
-    DB_STORAGE_DIR: str = os.path.join(OUTPUT_BASE_DIR, "data_storage")
-    DB_DIR: str = os.path.join(DB_STORAGE_DIR, "database")
-    DB_FILE: str = os.path.join(DB_DIR, 'multimodal_document_library.db')
+    # --- Persistence Storage File Paths (within the fixed top-level directory) ---
+    # Database and Faiss indices need persistence for reloading on next runs. Define paths explicitly.
+    DB_STORAGE_DIR: str = os.path.join(OUTPUT_BASE_DIR, "data_storage") # Main data storage directory
+    DB_DIR: str = os.path.join(DB_STORAGE_DIR, "database") # Database subdirectory
+    DB_FILE: str = os.path.join(DB_DIR, 'multimodal_doc_store.db') # Database file name (English)
 
-    FAISS_DIR: str = os.path.join(DB_STORAGE_DIR, "vector_indices")
-    FAISS_TEXT_INDEX_FILE: str = os.path.join(FAISS_DIR, 'text_vector_index.faiss')
-    FAISS_IMAGE_INDEX_FILE: str = os.path.join(FAISS_DIR, 'image_vector_index.faiss')
-    FAISS_MEAN_INDEX_FILE: str = os.path.join(FAISS_DIR, 'mean_vector_index.faiss')
-    
-    QUERY_RESULTS_DIR: str = os.path.join(OUTPUT_BASE_DIR, "query_session_results")
-    os.makedirs(QUERY_RESULTS_DIR, exist_ok=True) 
+    FAISS_DIR: str = os.path.join(DB_STORAGE_DIR, "vector_indices") # Faiss index subdirectory (English)
+    FAISS_TEXT_INDEX_FILE: str = os.path.join(FAISS_DIR, 'text_vector_index.faiss') # Text index file name (English)
+    FAISS_IMAGE_INDEX_FILE: str = os.path.join(FAISS_DIR, 'image_vector_index.faiss') # Image index file name (English)
+    FAISS_MEAN_INDEX_FILE: str = os.path.join(FAISS_DIR, 'mean_vector_index.faiss') # Mean index file name (English)
+
+    # Query Results Output Directory (within the fixed top-level directory)
+    # Used to save detailed input, retrieval results, and LLM generation results for each query.
+    QUERY_RESULTS_DIR: str = os.path.join(OUTPUT_BASE_DIR, "query_session_results") # English name
+    os.makedirs(QUERY_RESULTS_DIR, exist_ok=True)
 
     logger.info(f"Database file will be saved to: {DB_FILE}")
     logger.info(f"Faiss index files will be saved to directory: {FAISS_DIR}")
     logger.info(f"Query session results will be saved to directory: {QUERY_RESULTS_DIR}")
 
 
-    # --- 模型配置 ---
-    # 请注意：以下模型是经过审慎选择的，旨在平衡性能与资源消耗。
-    # CLIP 模型: "openai/clip-vit-base-patch32" 是一个广泛应用的基准模型。
-    # LLM 模型: "glm-4-flash" 是智谱AI提供的轻快版模型，适合快速响应和资源有限的场景。
+    # --- Model Configuration ---
+    # Choosing appropriate models is crucial for system performance. Using models specified in the example.
+    # Note: The following models were chosen deliberately to balance performance and resource consumption.
+    # CLIP Model: "openai/clip-vit-base-patch32" is a widely used baseline model.
+    # LLM Model: "glm-4-flash" from ZhipuAI is a lighter model suitable for faster responses and resource-constrained scenarios.
     CLIP_MODEL: str = "openai/clip-vit-base-patch32"
-    LLM_MODEL: str = "glm-4-flash" 
-    logger.info(f"Model Configuration: CLIP Model='{CLIP_MODEL}', Large Language Model (LLM)='{LLM_MODEL}'")
+    LLM_MODEL: str = "glm-4-flash"
+    logger.info(f"Model configuration: CLIP Model='{CLIP_MODEL}', Large Language Model (LLM)='{LLM_MODEL}'")
 
     # =============================================================================================
-    # 步骤 1: 加载原始数据并尝试关联图片
+    # Step 1: Load Raw Data and Attempt to Associate Images
+    # First step in building the knowledge base.
     # =============================================================================================
-    logger.info("\n--- [Main Flow] Step 1: Loading document data from JSON and associating image files ---")
+    logger.info("\n--- [Main Flow] Step 1: Load document data from JSON and associate image files ---")
     documents_to_index: List[Dict[str, Any]] = load_data_from_json_and_associate_images(JSON_DATA_PATH, IMAGE_DIR_PATH)
-    
+
+    # Check if data loading was successful. Subsequent steps depend on this.
     if not documents_to_index:
-        logger.critical("CRITICAL ERROR: Failed to load any valid document data from the JSON file, or the list is empty after image association.")
-        logger.critical(f"          Please check if '{JSON_DATA_PATH}' exists, is correctly formatted, and contains valid records.")
-        logger.critical("          The program will now exit due to this critical data loading failure.")
-        exit(1) 
+        logger.critical("CRITICAL ERROR: Failed to load any valid document data from the JSON file, or the document list is empty after image association.") # English error
+        logger.critical(f"          Please check if file '{JSON_DATA_PATH}' exists, is correctly formatted, and contains valid records.") # English error
+        logger.critical("          Program will exit now due to data loading failure.") # English error
+        exit(1) # Exit because necessary data is missing.
     logger.info(f"--- [Main Flow] Step 1 Complete: Successfully loaded and prepared {len(documents_to_index)} documents for indexing. ---\n")
-    time.sleep(0.2) 
+    time.sleep(0.2) # Short pause for clearer log output.
 
     # =============================================================================================
-    # 步骤 2: 初始化 Indexer 并对加载的文档建立索引
+    # Step 2: Initialize Indexer and Build Index for Loaded Documents
+    # Key step to convert raw data into vectors and store in DB and Faiss indices.
     # =============================================================================================
-    logger.info("--- [Main Flow] Step 2: Initializing Indexer and building indices for loaded documents ---")
-    indexer_instance: Optional[Indexer] = None 
+    logger.info("--- [Main Flow] Step 2: Initialize Indexer and build index for loaded documents ---")
+    indexer_instance: Optional[Indexer] = None # Initialize Indexer instance variable.
     try:
+        # Initialize Indexer, passing all necessary paths and the model name.
         indexer_instance = Indexer(
             db_path=DB_FILE,
             faiss_text_index_path=FAISS_TEXT_INDEX_FILE,
@@ -1839,311 +2108,413 @@ if __name__ == "__main__":
             faiss_mean_index_path=FAISS_MEAN_INDEX_FILE,
             clip_model_name=CLIP_MODEL
         )
+        # Call index_documents method to start the indexing process.
         indexer_instance.index_documents(documents_to_index)
 
-        logger.info("Index building/loading complete. Current status:")
-        text_count = getattr(indexer_instance.text_index, 'ntotal', 0)   
-        image_count = getattr(indexer_instance.image_index, 'ntotal', 0) 
-        mean_count = getattr(indexer_instance.mean_index, 'ntotal', 0)  
-        db_doc_count = indexer_instance.get_document_count()             
-        logger.info(f"  - SQLite Database ('{os.path.basename(DB_FILE)}') document records: {db_doc_count}")
-        logger.info(f"  - Text Faiss Index ('{os.path.basename(FAISS_TEXT_INDEX_FILE)}') vectors: {text_count}")
-        logger.info(f"  - Image Faiss Index ('{os.path.basename(FAISS_IMAGE_INDEX_FILE)}') vectors: {image_count}")
-        logger.info(f"  - Mean Faiss Index ('{os.path.basename(FAISS_MEAN_INDEX_FILE)}') vectors: {mean_count}")
+        logger.info("Index building/loading complete. Current status:") # English status
+        # Report current data counts in the database and Faiss indices.
+        text_count = getattr(indexer_instance.text_index, 'ntotal', 0)
+        image_count = getattr(indexer_instance.image_index, 'ntotal', 0)
+        mean_count = getattr(indexer_instance.mean_index, 'ntotal', 0)
+        db_doc_count = indexer_instance.get_document_count()
+        logger.info(f"  - SQLite Database ('{os.path.basename(DB_FILE)}') document records: {db_doc_count}") # English label
+        logger.info(f"  - Text Faiss Index ('{os.path.basename(FAISS_TEXT_INDEX_FILE)}') vectors: {text_count}") # English label
+        logger.info(f"  - Image Faiss Index ('{os.path.basename(FAISS_IMAGE_INDEX_FILE)}') vectors: {image_count}") # English label
+        logger.info(f"  - Mean Faiss Index ('{os.path.basename(FAISS_MEAN_INDEX_FILE)}') vectors: {mean_count}") # English label
 
+        # Check index status, warn if indices are empty but DB has records.
         if text_count == 0 and image_count == 0 and mean_count == 0 and db_doc_count > 0:
-             logger.warning("WARNING: Database contains document records, but all Faiss indices are empty!")
-             logger.warning("      This might indicate that the encoding process failed for all documents or no valid vectors were generated.")
-             logger.warning("      Subsequent retrieval operations will not be able to return results based on vector similarity. Please review Indexer and Encoder logs carefully.")
-        elif db_doc_count == 0: 
-             logger.warning("WARNING: Both the database and all Faiss indices are currently empty.")
-             logger.warning("      This could be due to empty input JSON data or all entries being skipped during loading and processing.")
+             logger.warning("WARNING: Database contains document records, but all Faiss indices are empty!") # English warning
+             logger.warning("      This might indicate that the encoding process failed for all documents, or no valid vectors were generated.") # English warning
+             logger.warning("      Subsequent retrieval operations will not be able to return results based on vector similarity. Please review Indexer and Encoder logs carefully.") # English warning
+        elif db_doc_count == 0:
+             logger.warning("WARNING: Database and all Faiss indices are currently empty.") # English warning
+             logger.warning("      This could be because the input JSON data was empty, or all entries were skipped during loading and processing.") # English warning
 
     except Exception as e:
-         logger.critical(f"CRITICAL ERROR: A top-level exception occurred during Indexer initialization or index building: {e}", exc_info=True)
-         logger.critical("          As the Indexer failed to prepare successfully, subsequent retrieval and generation steps may not function correctly.")
-         indexer_instance = None 
+         logger.critical(f"CRITICAL ERROR: Top-level exception occurred during Indexer initialization or index building: {e}", exc_info=True) # English error
+         logger.critical("          Subsequent retrieval and generation steps may not work correctly as the Indexer failed to prepare.") # English error
+         indexer_instance = None # Set instance to None to indicate initialization failure.
 
     logger.info("--- [Main Flow] Step 2 Complete. ---\n")
     time.sleep(0.2)
 
     # =============================================================================================
-    # 步骤 3: 初始化 Retriever (检索器)
+    # Step 3: Initialize Retriever
+    # Retriever depends on the Indexer. Initialize only if Indexer is successful and contains searchable vectors.
     # =============================================================================================
-    logger.info("--- [Main Flow] Step 3: Initializing Retriever ---")
-    retriever_instance: Optional[Retriever] = None 
-    if indexer_instance and (getattr(indexer_instance.text_index, 'ntotal', 0) > 0 or 
-                             getattr(indexer_instance.image_index, 'ntotal', 0) > 0 or 
-                             getattr(indexer_instance.mean_index, 'ntotal', 0) > 0):
-        try:
-            retriever_instance = Retriever(indexer=indexer_instance)
-        except Exception as e:
-             logger.error(f"ERROR: An exception occurred during Retriever initialization: {e}", exc_info=True)
-             retriever_instance = None 
+    logger.info("--- [Main Flow] Step 3: Initialize Retriever ---")
+    retriever_instance: Optional[Retriever] = None # Initialize Retriever instance variable.
+    # Attempt to initialize Retriever only if Indexer initialized successfully AND at least one Faiss index contains vectors.
+    if indexer_instance: # Check if indexer object exists first
+         text_index_ready = hasattr(indexer_instance, 'text_index') and getattr(indexer_instance.text_index, 'ntotal', 0) > 0
+         image_index_ready = hasattr(indexer_instance, 'image_index') and getattr(indexer_instance.image_index, 'ntotal', 0) > 0
+         mean_index_ready = hasattr(indexer_instance, 'mean_index') and getattr(indexer_instance.mean_index, 'ntotal', 0) > 0
+
+         if text_index_ready or image_index_ready or mean_index_ready:
+             try:
+                 retriever_instance = Retriever(indexer=indexer_instance) # Pass the Indexer instance.
+             except Exception as e:
+                  logger.error(f"ERROR: Exception occurred during Retriever initialization: {e}", exc_info=True) # English error
+                  retriever_instance = None # Initialization failed.
+         else:
+              logger.warning("Skipping Retriever initialization.") # English warning
+              logger.warning("  Reason: Indexer initialized successfully, but all its Faiss indices are currently empty.") # English reason
+              logger.warning("        This might be due to encoding issues, data problems, or index building logic. Please check detailed logs from Step 2.") # English reason
+              logger.warning("        Retriever cannot perform effective operations without searchable vectors.") # English reason
     else:
-         logger.warning("Skipping Retriever initialization.")
-         if indexer_instance is None:
-             logger.warning("  Reason: Indexer failed to initialize. Please check logs for Step 2 (Indexer initialization and index building).")
-         elif indexer_instance: 
-             logger.warning("  Reason: Indexer initialized successfully, but all its Faiss indices are currently empty.")
-             logger.warning("        This might be due to encoding issues, data problems, or index building logic. Please check detailed logs for Step 2.")
-             logger.warning("        Without searchable vectors, the Retriever cannot perform effective operations.")
+         logger.warning("Skipping Retriever initialization.") # English warning
+         logger.warning("  Reason: Indexer initialization failed. Please check logs for Step 2 (Indexer initialization and indexing).") # English reason
+
 
     logger.info("--- [Main Flow] Step 3 Complete. ---\n")
     time.sleep(0.2)
 
     # =============================================================================================
-    # 步骤 4: 初始化 Generator (生成器)
+    # Step 4: Initialize Generator
+    # Generator depends on the ZhipuAI API. Check if the API Key is available.
     # =============================================================================================
-    logger.info("--- [Main Flow] Step 4: Initializing Generator (will interact with ZhipuAI API) ---")
-    generator_instance: Optional[Generator] = None 
+    logger.info("--- [Main Flow] Step 4: Initialize Generator (will interact with ZhipuAI API) ---")
+    generator_instance: Optional[Generator] = None # Initialize Generator instance variable.
+    # Try to get ZhipuAI API Key from environment variable (recommended).
     zhipuai_api_key_from_env: Optional[str] = os.getenv("ZHIPUAI_API_KEY")
     if not zhipuai_api_key_from_env:
-        logger.warning("WARNING: 'ZHIPUAI_API_KEY' not found in environment variables.")
-        logger.warning("      The Generator will not be able to communicate with the ZhipuAI API, and the answer generation step will be skipped.")
-        logger.warning("      To enable LLM answer generation, please do one of the following:")
-        logger.warning("        1. (Recommended) Set your ZhipuAI API Key as an environment variable named 'ZHIPUAI_API_KEY'.")
-        logger.warning("           Example (Linux/macOS): export ZHIPUAI_API_KEY='your_valid_api_key'")
-        logger.warning("           Then, re-run this script in the same terminal session.")
-        logger.warning("        2. (Alternative) Pass the API Key directly via the `api_key` parameter when initializing the Generator in the code (less secure for this example).")
+        # If API Key is not found in environment, log a warning and explain how to set it.
+        logger.warning("WARNING: Environment variable 'ZHIPUAI_API_KEY' not found.") # English warning
+        logger.warning("      The Generator will not be able to communicate with the ZhipuAI API, and the answer generation step will be skipped.") # English warning
+        logger.warning("      To enable LLM answer generation, please do one of the following:") # English instruction
+        logger.warning("        1. (Recommended) Set your ZhipuAI API Key as an environment variable named 'ZHIPUAI_API_KEY'.") # English instruction
+        logger.warning("           Example (Linux/macOS): export ZHIPUAI_API_KEY='your_valid_api_key'") # English example
+        logger.warning("           Then, rerun this script in the same terminal session.") # English instruction
+        logger.warning("        2. (Alternative) Pass the API Key directly via the `api_key` parameter when initializing the Generator in the code (less secure for this example).") # English instruction
     else:
-        logger.info("ZHIPUAI_API_KEY detected in environment variables. Attempting to initialize Generator...")
+        logger.info("Environment variable 'ZHIPUAI_API_KEY' detected. Attempting to initialize Generator...") # English info
         try:
+            # Initialize Generator using the obtained API Key.
             generator_instance = Generator(api_key=zhipuai_api_key_from_env, model_name=LLM_MODEL)
         except Exception as e:
-             logger.error(f"ERROR: An exception occurred during Generator initialization: {e}", exc_info=True)
-             generator_instance = None 
+             logger.error(f"ERROR: Exception occurred during Generator initialization: {e}", exc_info=True) # English error
+             generator_instance = None # Initialization failed.
 
     logger.info("--- [Main Flow] Step 4 Complete. ---\n")
     time.sleep(0.2)
 
     # =============================================================================================
-    # 步骤 5: 执行 RAG 查询示例 (包括检索 和 生成 两个阶段)
+    # Step 5: Execute RAG Query Examples (Retrieval + Generation stages)
+    # End-to-end demonstration of the system. Executes only if both Retriever and Generator are available.
     # =============================================================================================
-    logger.info("--- [Main Flow] Step 5: Executing RAG Query Examples (Retrieval + Generation) ---")
+    logger.info("--- [Main Flow] Step 5: Execute RAG Query Examples (Retrieve + Generate) ---")
 
+    # Execute query examples only if both Retriever and Generator initialized successfully.
     if retriever_instance and generator_instance:
-        logger.info("Retriever and Generator have been successfully initialized. Proceeding with example queries...")
+        logger.info("Retriever and Generator are both successfully initialized. Proceeding with example queries...") # English info
 
         def log_retrieved_docs_summary_for_main_process(docs_list: List[Dict[str, Any]], query_log_prefix: str = "    "):
+            """Helper function to print a concise summary of retrieved documents in the main process log."""
             if not docs_list:
-                logger.info(f"{query_log_prefix}>> Retrieval Result: No relevant documents found for the query.")
+                logger.info(f"{query_log_prefix}>> Retrieval Result: No relevant documents found for the query.") # English result
                 return
-            logger.info(f"{query_log_prefix}>> Retrieval Result: Found Top-{len(docs_list)} relevant documents. Summary:")
-            for i, doc_item_data in enumerate(docs_list): 
-                score = doc_item_data.get('score', 'N/A') 
-                score_str = f"{score:.4f}" if isinstance(score, float) else str(score)
-                text_preview = doc_item_data.get('text', 'No text content')[:70] 
-                if len(doc_item_data.get('text', '')) > 70: text_preview += "..." 
-                img_filename_info = ""
+            logger.info(f"{query_log_prefix}>> Retrieval Result: Found Top-{len(docs_list)} relevant documents. Summary:") # English result
+            for i, doc_item_data in enumerate(docs_list):
+                score = doc_item_data.get('score', 'N/A') # Get score.
+                score_str = f"{score:.4f}" if isinstance(score, float) else str(score) # Format score.
+                text_preview = doc_item_data.get('text', 'No text content')[:70] # Truncate text preview.
+                if len(doc_item_data.get('text', '')) > 70: text_preview += "..." # Add ellipsis.
+                img_filename_info = "" # Initialize image info string.
                 if doc_item_data.get('image_path'):
-                    img_filename_info = f", Associated Image: '{os.path.basename(doc_item_data['image_path'])}'"
-                logger.info(f"{query_log_prefix}  {i+1}. DocID: {doc_item_data.get('id', 'N/A')} (Score: {score_str})")
-                logger.info(f"{query_log_prefix}     Text Preview: '{text_preview}'{img_filename_info}")
-            logger.info(f"{query_log_prefix}{'-'*40}") 
+                    img_filename_info = f", Associated Image: '{os.path.basename(doc_item_data['image_path'])}'" # Add image filename.
+                logger.info(f"{query_log_prefix}  {i+1}. Document ID: {doc_item_data.get('id', 'N/A')} (Score: {score_str})") # English output
+                logger.info(f"{query_log_prefix}     Text Preview: '{text_preview}'{img_filename_info}") # English output
+            logger.info(f"{query_log_prefix}{'-'*40}")
 
-        # --- 准备示例查询数据 (减少数量以适应资源限制) ---
+        # --- Prepare Example Query Data (Reduced quantity for resource limits, keep only a few examples) ---
         text_queries_examples: List[str] = [
-            "What is a bandgap voltage reference and its main purpose?", # 英文查询以配合英文目录和文件名
-            "Explain how PTAT current is generated and its role in bandgap circuits.",
-            # "Describe the basic topology of a classic bandgap reference circuit using BJTs.", # Removed for brevity
+            "What is a bandgap voltage reference and its main purpose?", # Example: Pure text query, concept explanation
+            "Explain how the PTAT current is generated and its role in a bandgap circuit.", # Example: Pure text query, principle
         ]
 
+        # Collect documents with valid images to build image and multimodal query examples.
         image_docs_available_for_queries: List[Dict[str, Any]] = []
-        if documents_to_index: 
-            for doc_data_item_source in documents_to_index: 
+        if documents_to_index:
+            for doc_data_item_source in documents_to_index:
                 img_path_source = doc_data_item_source.get('image_path')
                 if img_path_source and os.path.exists(img_path_source) and os.path.isfile(img_path_source):
+                    # Only add documents with valid image paths.
                     image_docs_available_for_queries.append({
-                        'id': doc_data_item_source.get('id'), 
+                        'id': doc_data_item_source.get('id'),
                         'image_path': img_path_source,
-                        'text': doc_data_item_source.get('text', '') 
+                        'text': doc_data_item_source.get('text', '')
                     })
 
         image_queries_examples_data: List[Dict[str, Any]] = []
         multimodal_queries_examples_data: List[Dict[str, Any]] = []
 
         if image_docs_available_for_queries:
-            num_image_query_samples = min(1, len(image_docs_available_for_queries)) # Reduced to 1 sample
-            logger.info(f"Found {len(image_docs_available_for_queries)} documents with valid images. Will randomly select {num_image_query_samples} for image/multimodal query examples.")
+            # Randomly select a small number from available image docs for query examples.
+            num_image_query_samples = min(1, len(image_docs_available_for_queries)) # Reduced to only 1 sample for image/multimodal query examples
+            logger.info(f"Found {len(image_docs_available_for_queries)} documents with valid images. Randomly selecting {num_image_query_samples} for image/multimodal query examples.") # English info
             selected_image_docs_for_queries = random.sample(image_docs_available_for_queries, num_image_query_samples)
 
             for selected_doc_info in selected_image_docs_for_queries:
                 doc_id_for_query = selected_doc_info['id']
                 img_path_for_query = selected_doc_info['image_path']
-                img_filename_for_query = os.path.basename(img_path_for_query) 
+                img_filename_for_query = os.path.basename(img_path_for_query)
 
+                # Build pure image query example.
                 image_queries_examples_data.append({
                     'query_input': {'image_path': img_path_for_query},
-                    'query_for_generator': f"This image (filename: {img_filename_for_query}) primarily shows what circuit structure or key concept? Please explain in detail based on the text description in the associated document.",
-                    'description': f"PureImageQuery_About_{img_filename_for_query}"
+                    # Explicitly mention image info and requirements in the text question for Generator, guiding it based on text description.
+                    'query_for_generator': f"What circuit structure or key concept does this image (filename: {img_filename_for_query}) primarily show? Please explain in detail based on the text description in the associated document.", # English query
+                    'description': f"PureImageQuery_About_{img_filename_for_query}" # Description for logs and filenames (English)
                 })
 
+                # Build multimodal query example.
                 multimodal_queries_examples_data.append({
                     'query_input': {
-                        'text': f"Combining the document content and this image (filename: {img_filename_for_query}), please explain the working principle, key features, or design considerations of the circuit shown.", 
+                        'text': f"Combining the document content and this image (filename: {img_filename_for_query}), please explain the working principle, key features, or design considerations of the circuit shown.", # English text query part
                         'image_path': img_path_for_query
                     },
-                    'query_for_generator': f"Combining the document content and this image (filename: {img_filename_for_query}), please explain the working principle, key features, or design considerations of the circuit shown.",
-                    'description': f"MultimodalQuery_Explain_Image_{img_filename_for_query}"
+                     # Text question for Generator can be similar to the text part of query_input, or adjusted as needed.
+                    'query_for_generator': f"Combining the document content and this image (filename: {img_filename_for_query}), please explain the working principle, key features, or design considerations of the circuit shown.", # English query for generator
+                    'description': f"MultimodalQuery_ExplainImage_{img_filename_for_query}" # Description for logs and filenames (English)
                 })
         else:
-             logger.warning("WARNING: No valid, existing image files found in the loaded data.")
-             logger.warning("      Therefore, pure image query and multimodal query examples will be skipped.")
+             logger.warning("WARNING: No valid and existing image files found in the loaded data.") # English warning
+             logger.warning("      Therefore, examples for pure image queries and multimodal queries will be skipped.") # English warning
 
 
+        # Group all example queries by type.
         all_example_queries_groups: List[Tuple[str, List[Any]]] = [ # Adjusted type for List[Any]
-            ("Pure_Text_Queries", text_queries_examples),
-            ("Pure_Image_Queries", image_queries_examples_data),
-            ("Multimodal_Queries", multimodal_queries_examples_data)
+            ("Pure Text Query", text_queries_examples), # English type name
+            ("Pure Image Query", image_queries_examples_data), # English type name
+            ("Multimodal Query", multimodal_queries_examples_data) # English type name
         ]
 
-        overall_query_counter = 0 
+        overall_query_counter = 0 # Track total query count for unique output directories.
+        # Iterate through each query group and each query within the group.
         for query_group_name, queries_in_group in all_example_queries_groups:
-            logger.info(f"\n{'#'*70}\n>>> Starting Example Queries for Type: [{query_group_name}] (Total in this group: {len(queries_in_group)}) <<<\n{'#'*70}\n")
+            logger.info(f"\n{'#'*70}\n>>> Starting Example Queries, Type: [{query_group_name}] (Total in this group: {len(queries_in_group)}) <<<\n{'#'*70}\n") # English header
 
             if not queries_in_group:
-                logger.info(f"    (Skipping [{query_group_name}] type queries as no query data is available.)")
-                continue 
+                logger.info(f"    (Skipping query examples of type [{query_group_name}] as no query data is available.)") # English skip message
+                continue
 
             for query_index_in_group, query_data_item in enumerate(queries_in_group):
                 overall_query_counter += 1
-                
-                query_input_for_retriever: Union[str, Dict[str, str], None] = None 
-                query_text_for_generator: Optional[str] = None          
-                query_description_for_logging: Optional[str] = None     
-                query_file_prefix_for_saving: Optional[str] = None     
 
-                if query_group_name == "Pure_Text_Queries":
-                    query_input_for_retriever = str(query_data_item) 
-                    query_text_for_generator = str(query_data_item)
-                    query_description_for_logging = str(query_data_item)
-                    query_file_prefix_for_saving = sanitize_filename(f"TextQuery_{query_data_item}", max_length=60)
-                else: 
-                    query_input_for_retriever = query_data_item['query_input'] # type: ignore
-                    query_text_for_generator = query_data_item['query_for_generator'] # type: ignore
-                    # Use the pre-defined description from the dict, as it's already sanitized for filename use
-                    query_description_for_logging = query_data_item['description'] # type: ignore
-                    query_file_prefix_for_saving = sanitize_filename(query_data_item['description'], max_length=60) # type: ignore
-                
-                logger.info(f"\n--- Processing Query #{overall_query_counter} (Type: {query_group_name} - Index: {query_index_in_group+1}/{len(queries_in_group)}) ---")
-                logger.info(f"Query Description: {str(query_description_for_logging)[:120]}{'...' if len(str(query_description_for_logging))>120 else ''}")
-                if isinstance(query_input_for_retriever, dict):
-                    if 'text' in query_input_for_retriever:
-                        logger.info(f"  -> Input text for Retriever: '{str(query_input_for_retriever['text'])[:80]}...'")
-                    if 'image_path' in query_input_for_retriever:
-                        logger.info(f"  -> Input image for Retriever: '{os.path.basename(str(query_input_for_retriever['image_path']))}'")
-                logger.info(f"  -> Question text for Generator: '{str(query_text_for_generator)[:100]}...'")
-                logger.info("-" * 30) 
-                
-                current_query_specific_output_dir = os.path.join(QUERY_RESULTS_DIR, f"query_{overall_query_counter:03d}_{query_file_prefix_for_saving}")
-                os.makedirs(current_query_specific_output_dir, exist_ok=True)
-                logger.info(f"  Detailed results for this query will be saved in: {current_query_specific_output_dir}")
+                # Prepare query input format for Retriever and text question for Generator.
+                query_input_for_retriever: Union[str, Dict[str, str], None] = None
+                query_text_for_generator: Optional[str] = None
+                query_description_for_logging: Optional[str] = None     # Query description for logging and reports.
+                query_file_prefix_for_saving: Optional[str] = None     # Directory name prefix for saving results.
 
-
-                retrieved_context_docs_list: List[Dict[str, Any]] = [] 
-                final_generated_response_text: str = "LLM generation step was not executed or failed due to an error." 
-                
-                try:
-                    query_input_filename = "input_to_retriever.json" if isinstance(query_input_for_retriever, dict) else "input_to_retriever.txt"
-                    query_input_save_path = os.path.join(current_query_specific_output_dir, query_input_filename)
-                    with open(query_input_save_path, 'w', encoding='utf-8') as f_query_in:
-                        if isinstance(query_input_for_retriever, dict):
-                            json.dump(query_input_for_retriever, f_query_in, ensure_ascii=False, indent=4)
+                # Extract specific query data based on the group type.
+                if query_group_name == "Pure Text Query":
+                    query_input_for_retriever = str(query_data_item) # Pure text input is the string itself.
+                    query_text_for_generator = str(query_data_item) # Generator also uses this string directly.
+                    query_description_for_logging = str(query_data_item) # Log description.
+                    query_file_prefix_for_saving = sanitize_filename(f"TextQuery_{query_data_item}", max_length=60) # Generate directory prefix.
+                else: # Pure Image or Multimodal query, data item is a dictionary.
+                    if isinstance(query_data_item, dict): # Add check to ensure it's a dict
+                        query_input_for_retriever = query_data_item.get('query_input')
+                        query_text_for_generator = query_data_item.get('query_for_generator')
+                        # Use the predefined description, which should be a string.
+                        query_description_for_logging = query_data_item.get('description')
+                        if isinstance(query_description_for_logging, str):
+                            query_file_prefix_for_saving = sanitize_filename(query_description_for_logging, max_length=60)
                         else:
-                            f_query_in.write(str(query_input_for_retriever))
-                    logger.debug(f"  Query input saved to: {query_input_save_path}")
+                             query_file_prefix_for_saving = sanitize_filename(f"{query_group_name}_query_{query_index_in_group+1}", max_length=60) # Fallback prefix
+                             logger.warning(f"Query #{overall_query_counter} description is not a string, using fallback filename prefix.")
+                    else:
+                        logger.error(f"Error processing query #{overall_query_counter}: Expected dictionary for {query_group_name}, but got {type(query_data_item)}. Skipping query.")
+                        continue # Skip this invalid query item
 
-                    logger.info("  [Retrieval Phase] Calling Retriever.retrieve() method...")
-                    # Using k=2 for faster example runs
-                    retrieved_context_docs_list = retriever_instance.retrieve(query_input_for_retriever, k=2) 
-                    log_retrieved_docs_summary_for_main_process(retrieved_context_docs_list, query_log_prefix="    ")
-                    
-                    retrieved_context_save_path = os.path.join(current_query_specific_output_dir, "retrieved_context_documents.json")
-                    with open(retrieved_context_save_path, 'w', encoding='utf-8') as f_retrieved_ctx:
-                        json.dump(retrieved_context_docs_list, f_retrieved_ctx, ensure_ascii=False, indent=4)
-                    logger.debug(f"  Full retrieved context documents saved to: {retrieved_context_save_path}")
 
-                    if retrieved_context_docs_list: # Only generate if context is found
-                        logger.info("  [Generation Phase] Calling Generator.generate() method (using retrieved context)...")
-                        if query_text_for_generator is not None: 
+                # Log information about the query currently being processed.
+                logger.info(f"\n--- Processing Query #{overall_query_counter} (Type: {query_group_name} - Index in group: {query_index_in_group+1}/{len(queries_in_group)}) ---") # English status
+                log_desc_str = str(query_description_for_logging) if query_description_for_logging else "N/A"
+                logger.info(f"Query Description: {log_desc_str[:120]}{'...' if len(log_desc_str)>120 else ''}") # English label
+                # Log the input being passed to the Retriever in detail.
+                if isinstance(query_input_for_retriever, dict):
+                    retriever_input_text = query_input_for_retriever.get('text')
+                    retriever_input_image = query_input_for_retriever.get('image_path')
+                    if retriever_input_text:
+                        logger.info(f"  -> Input Text for Retriever: '{str(retriever_input_text)[:80]}{'...' if len(str(retriever_input_text)) > 80 else ''}'") # English label
+                    if retriever_input_image:
+                         logger.info(f"  -> Input Image for Retriever: '{os.path.basename(str(retriever_input_image))}'") # English label
+                elif isinstance(query_input_for_retriever, str):
+                     logger.info(f"  -> Input Text for Retriever: '{query_input_for_retriever[:80]}{'...' if len(query_input_for_retriever) > 80 else ''}'") # English label
+                else:
+                     logger.info("  -> Input for Retriever: (None or invalid format)")
+
+                # Log the text question being passed to the Generator.
+                if query_text_for_generator:
+                     logger.info(f"  -> Question Text for Generator: '{str(query_text_for_generator)[:100]}{'...' if len(str(query_text_for_generator)) > 100 else ''}'") # English label
+                else:
+                     logger.info("  -> Question Text for Generator: (None)") # English label
+                logger.info("-" * 30)
+
+                # Create a unique output directory for the current query to save detailed results.
+                # Ensure query_file_prefix_for_saving is set
+                if not query_file_prefix_for_saving:
+                    query_file_prefix_for_saving = sanitize_filename(f"query_{overall_query_counter}_fallback", max_length=60)
+                    logger.warning(f"Query #{overall_query_counter} had no valid file prefix, using fallback: {query_file_prefix_for_saving}")
+
+                current_query_specific_output_dir = os.path.join(QUERY_RESULTS_DIR, f"query_{overall_query_counter:03d}_{query_file_prefix_for_saving}")
+                try:
+                    os.makedirs(current_query_specific_output_dir, exist_ok=True)
+                    logger.info(f"  Detailed results for this query will be saved to: {current_query_specific_output_dir}") # English info
+                except OSError as e_mkdir:
+                     logger.error(f"Error creating output directory for query #{overall_query_counter}: {e_mkdir}. Skipping saving results for this query.")
+                     continue # Skip to next query if directory cannot be created
+
+
+                retrieved_context_docs_list: List[Dict[str, Any]] = [] # Initialize retrieval results list.
+                final_generated_response_text: str = "LLM generation step was not executed or failed due to an error." # Default generator failure message (English)
+
+                try:
+                    # Save the original query input passed to the Retriever.
+                    query_input_filename = "input_for_retriever.json" if isinstance(query_input_for_retriever, dict) else "input_for_retriever.txt" # English filename
+                    query_input_save_path = os.path.join(current_query_specific_output_dir, query_input_filename)
+                    try:
+                        with open(query_input_save_path, 'w', encoding='utf-8') as f_query_in:
+                            if isinstance(query_input_for_retriever, dict):
+                                json.dump(query_input_for_retriever, f_query_in, ensure_ascii=False, indent=4)
+                            else:
+                                f_query_in.write(str(query_input_for_retriever) if query_input_for_retriever is not None else "")
+                        logger.debug(f"  Query input saved to: {query_input_save_path}")
+                    except Exception as e_save_input:
+                         logger.error(f"Error saving query input to {query_input_save_path}: {e_save_input}")
+
+
+                    logger.info("  [Retrieval Stage] Calling Retriever.retrieve() method...") # English stage label
+                    # Ensure query_input_for_retriever is not None before calling retrieve
+                    if query_input_for_retriever is not None:
+                        # Call Retriever to perform retrieval. Use k=2 for Top-2 results for quicker demo.
+                        retrieved_context_docs_list = retriever_instance.retrieve(query_input_for_retriever, k=2)
+                        # Print summary of retrieved documents.
+                        log_retrieved_docs_summary_for_main_process(retrieved_context_docs_list, query_log_prefix="    ")
+                    else:
+                        logger.warning("  [Retrieval Stage] Skipped: Query input for retriever was None or invalid.")
+                        retrieved_context_docs_list = [] # Ensure it's empty
+
+
+                    # Save the full list of retrieved documents (context).
+                    retrieved_context_save_path = os.path.join(current_query_specific_output_dir, "retrieved_context_documents.json") # English filename
+                    try:
+                        with open(retrieved_context_save_path, 'w', encoding='utf-8') as f_retrieved_ctx:
+                            json.dump(retrieved_context_docs_list, f_retrieved_ctx, ensure_ascii=False, indent=4)
+                        logger.debug(f"  Full retrieved context documents saved to: {retrieved_context_save_path}")
+                    except Exception as e_save_context:
+                         logger.error(f"Error saving retrieved context to {retrieved_context_save_path}: {e_save_context}")
+
+
+                    # Proceed to generation stage only if at least one document was retrieved.
+                    if retrieved_context_docs_list:
+                        logger.info("  [Generation Stage] Calling Generator.generate() method (using retrieved context)...") # English stage label
+                        if query_text_for_generator:
+                            # Call Generator to produce the final answer.
                             final_generated_response_text = generator_instance.generate(query_text_for_generator, retrieved_context_docs_list)
 
-                            logger.info(f"\n  <<< LLM Final Response for Query #{overall_query_counter} >>>")
+                            # Print the final response generated by the LLM.
+                            logger.info(f"\n  <<< Final Response Generated by LLM for Query #{overall_query_counter} >>>") # English header
                             logger.info("-" * 35)
-                            logger.info(final_generated_response_text) 
+                            logger.info(final_generated_response_text)
                             logger.info("-" * 35)
                         else:
-                            logger.error("  [Generation Phase] ERROR: Query text for Generator is None. Cannot generate response.")
-                            final_generated_response_text = "Error: Query text provided to the generator was empty."
+                            logger.error("  [Generation Stage] ERROR: Question text for Generator is None. Cannot generate response.") # English error
+                            final_generated_response_text = "Error: Question text for the generator was empty." # English error message
                     else:
-                         logger.info("  [Generation Phase] Skipped: No relevant context documents were retrieved by the Retriever, so LLM generation is not performed.")
-                         final_generated_response_text = "LLM generation was not performed as no relevant context was found."
+                         # If no context was retrieved, skip generation and log it.
+                         logger.info("  [Generation Stage] Skipped: Retriever did not find any relevant context documents, so LLM generation is not performed.") # English skip message
+                         final_generated_response_text = "No relevant context found by Retriever, LLM generation skipped." # English message
 
-                    llm_response_save_path = os.path.join(current_query_specific_output_dir, "final_llm_generated_response.txt")
-                    with open(llm_response_save_path, 'w', encoding='utf-8') as f_llm_resp:
-                        f_llm_resp.write(final_generated_response_text)
-                    logger.debug(f"  LLM generated response saved to: {llm_response_save_path}")
+                    # Save the final response generated by the LLM.
+                    llm_response_save_path = os.path.join(current_query_specific_output_dir, "llm_generated_final_response.txt") # English filename
+                    try:
+                        with open(llm_response_save_path, 'w', encoding='utf-8') as f_llm_resp:
+                            f_llm_resp.write(final_generated_response_text)
+                        logger.debug(f"  LLM generated response saved to: {llm_response_save_path}")
+                    except Exception as e_save_response:
+                         logger.error(f"Error saving LLM response to {llm_response_save_path}: {e_save_response}")
+
 
                 except Exception as e_query_processing:
-                     logger.error(f"CRITICAL ERROR during processing of query '{query_description_for_logging}' (Query #{overall_query_counter}): {e_query_processing}", exc_info=True)
+                     # Catch any exceptions during the processing of a single query, log as critical, but don't stop the whole program.
+                     log_desc_str = str(query_description_for_logging) if query_description_for_logging else f"Query_{overall_query_counter}"
+                     logger.critical(f"CRITICAL ERROR occurred while processing query '{log_desc_str}' (Query #{overall_query_counter}): {e_query_processing}", exc_info=True) # English error
+                     # Try to save the error message to a file as well.
                      try:
-                        llm_response_path = os.path.join(current_query_specific_output_dir, "final_llm_generated_response_ERROR.txt")
-                        with open(llm_response_path, 'w', encoding='utf-8') as f_llm_err:
-                            f_llm_err.write(f"A critical error occurred while processing this query: {e_query_processing}\nPlease check the main log file for a detailed stack trace.")
+                        error_info_path = os.path.join(current_query_specific_output_dir, "processing_error_info.txt") # English filename
+                        with open(error_info_path, 'w', encoding='utf-8') as f_proc_err:
+                            f_proc_err.write(f"A critical error occurred while processing this query: {e_query_processing}\nCheck the main log file for the detailed stack trace.\n\nOriginal query description: {log_desc_str}\n")
                      except Exception as e_save_err:
-                        logger.error(f"Additional error: Failed to save query processing error information to file: {e_save_err}")
+                        logger.error(f"Additional Error: Failed to save query processing error information to file: {e_save_err}") # English error
 
-                logger.info(f"--- Query #{overall_query_counter} processing complete ---")
-                if query_index_in_group < len(queries_in_group) - 1: 
+                logger.info(f"--- Query #{overall_query_counter} Processing Complete ---") # English status
+                # Pause briefly before processing the next query in the same group, for easier log observation.
+                if query_index_in_group < len(queries_in_group) - 1:
                     delay_seconds = 0.5 # Reduced delay for faster testing
-                    logger.info(f"\n...Pausing for {delay_seconds} seconds before next query in this group...\n" + "-"*70 + "\n")
+                    logger.info(f"\n...Pausing for {delay_seconds} seconds before next query in this group...\n" + "-"*70 + "\n") # English pause message
                     time.sleep(delay_seconds)
-            
-            logger.info(f"\n{'#'*70}\n>>> All example queries for type [{query_group_name}] have been processed <<<\n{'#'*70}\n")
-            time.sleep(0.5) 
+
+            logger.info(f"\n{'#'*70}\n>>> All Example Queries of Type [{query_group_name}] Processed <<<\n{'#'*70}\n") # English group completion message
+            time.sleep(0.5) # Slightly longer pause between groups.
 
     else:
-        logger.critical("\nCRITICAL SYSTEM ISSUE: RAG query example flow cannot be executed due to failure in initializing one or more core components.")
+        # If Retriever or Generator failed to initialize, log a critical error and explain why.
+        logger.critical("\nCRITICAL SYSTEM ISSUE: RAG query example flow cannot execute because one or more core components failed to initialize.") # English critical issue
         if not retriever_instance:
-            logger.critical("  - Reason: Retriever failed to initialize.")
-            logger.critical("    Please carefully review logs for Step 2 (Indexer initialization) and Step 3 (Retriever initialization) to identify the root cause.")
+            logger.critical("  - Reason: Retriever initialization failed.") # English reason
+            logger.critical("    Please carefully review the logs for Step 2 (Indexer initialization) and Step 3 (Retriever initialization) to identify the root cause.") # English instruction
         if not generator_instance:
-            logger.critical("  - Reason: Generator failed to initialize.")
-            logger.critical("    Please carefully review logs for Step 4 (Generator initialization), especially checks for ZHIPUAI_API_KEY and ZhipuAI client initialization status.")
-        logger.critical("Please resolve the initialization issues and try again.")
+            logger.critical("  - Reason: Generator initialization failed.") # English reason
+            logger.critical("    Please carefully review the logs for Step 4 (Generator initialization), especially regarding the ZHIPUAI_API_KEY check and ZhipuAI client initialization status.") # English instruction
+        logger.critical("Please resolve the initialization issues and retry.") # English instruction
 
     logger.info("--- [Main Flow] Step 5 (RAG Query Examples) Complete. ---\n")
 
     # =============================================================================================
-    # 步骤 6: 清理和关闭资源
+    # Step 6: Cleanup and Close Resources
+    # Mandatory step before program exit to ensure all resources are properly released or saved.
     # =============================================================================================
-    logger.info("--- [Main Flow] Step 6: Cleaning up and closing system resources ---")
-    if retriever_instance: 
-        retriever_instance.close()
+    logger.info("--- [Main Flow] Step 6: Cleanup and Close System Resources ---")
+    # Close component instances sequentially, if they were successfully initialized.
+    if retriever_instance:
+        try:
+            retriever_instance.close()
+        except Exception as e_close_retriever:
+             logger.error(f"Error during Retriever closing: {e_close_retriever}", exc_info=True)
     else:
-        logger.info("  Retriever was not initialized or failed, no cleanup needed.")
-        
-    if generator_instance: 
-        generator_instance.close()
+        logger.info("  Retriever was not initialized or failed, no cleanup needed.") # English info
+
+    if generator_instance:
+        try:
+            generator_instance.close()
+        except Exception as e_close_generator:
+            logger.error(f"Error during Generator closing: {e_close_generator}", exc_info=True)
     else:
-        logger.info("  Generator was not initialized or failed, no cleanup needed.")
-        
-    if indexer_instance:   
-        indexer_instance.close()
+        logger.info("  Generator was not initialized or failed, no cleanup needed.") # English info
+
+    if indexer_instance:
+        try:
+            indexer_instance.close() # Indexer's close method handles saving Faiss indices.
+        except Exception as e_close_indexer:
+             logger.error(f"Error during Indexer closing (Faiss indices might not be saved): {e_close_indexer}", exc_info=True)
     else:
-        logger.info("  Indexer was not initialized or failed, no cleanup (and Faiss indices might not be saved).")
-        
-    logger.info("--- [Main Flow] System resource cleanup and shutdown procedures complete. ---\n")
+        logger.info("  Indexer was not initialized or failed, no cleanup needed (Faiss indices may not have been saved).") # English info
+
+    logger.info("--- [Main Flow] System resource cleanup and closing process complete. ---\n")
 
     logger.info("\n" + "="*80)
-    logger.info("========= Multimodal RAG System Example Program Execution Finished =========")
-    logger.info(f"All outputs (logs, database, indices, query results) have been saved in the top-level directory:")
+    logger.info("========= Multimodal RAG System Example Program Execution Finished =========") # English finish message
+    logger.info(f"All output (logs, database, indices, query results) saved to the fixed top-level directory:") # English summary
     logger.info(f"  {os.path.abspath(OUTPUT_BASE_DIR)}")
-    logger.info("Key subdirectories overview:")
-    logger.info(f"  - {os.path.join(OUTPUT_BASE_DIR, 'run_logs/')}")
-    logger.info(f"  - {os.path.join(OUTPUT_BASE_DIR, 'data_storage', 'database/')}")
-    logger.info(f"  - {os.path.join(OUTPUT_BASE_DIR, 'data_storage', 'vector_indices/')}")
-    logger.info(f"  - {os.path.join(OUTPUT_BASE_DIR, 'query_session_results/')}")
-    logger.info(f"    (Under query_session_results/, each 'query_XXX_...' subdirectory contains detailed I/O for a single query)")
+    logger.info("Key subdirectory overview:") # English overview
+    logger.info(f"  - {os.path.join(OUTPUT_BASE_DIR, 'logs/')}") # Updated path
+    logger.info(f"  - {os.path.join(OUTPUT_BASE_DIR, 'data_storage', 'database/')}") # Updated path
+    logger.info(f"  - {os.path.join(OUTPUT_BASE_DIR, 'data_storage', 'vector_indices/')}") # Updated path
+    logger.info(f"  - {os.path.join(OUTPUT_BASE_DIR, 'query_session_results/')}") # Updated path
+    logger.info(f"    (Under {os.path.basename(QUERY_RESULTS_DIR)}/, each 'query_XXX_...' subdirectory contains detailed input/output for a single query)") # English explanation
+    logger.warning(f"REMINDER: Since the top-level directory '{OUTPUT_BASE_DIR}' is fixed, running the script again with the same identifier will OVERWRITE its contents.") # English reminder
     logger.info("="*80 + "\n")
