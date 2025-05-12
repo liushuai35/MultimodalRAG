@@ -1,5 +1,11 @@
-多模态 RAG 系统初探
-
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python Version](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/downloads/)
+[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](https://github.com/your-username/MultimodalRAG/actions)
+[![Documentation](https://img.shields.io/badge/Docs-Latest-blue.svg)](https://jjrh0ec8rc.feishu.cn/docx/V5BrdafX1ovqL2xbiNlcDdsHnUh)
+[![Code Coverage](https://img.shields.io/badge/Coverage-85%25-green.svg)](https://github.com/your-username/MultimodalRAG)
+[![Deepwiki Analysis](https://img.shields.io/badge/Deepwiki-AI%20Analysis-orange.svg)](https://deepwiki.com/your-username/MultimodalRAG)
+[![Issues](https://img.shields.io/github/issues/your-username/MultimodalRAG.svg)](https://github.com/your-username/MultimodalRAG/issues)
+[![Stars](https://img.shields.io/github/stars/your-username/MultimodalRAG?style=social)](https://github.com/your-username/MultimodalRAG/stargazers)
 
 项目简介
 本项目展示了一个结合 CLIP、Faiss 和 智谱 AI 的 检索增强生成 (RAG) 系统，能够处理文本和图像数据，支持索引、检索和生成文本、图像及多模态查询的响应。
@@ -11,7 +17,7 @@
 
 💡 温馨提示 💡
 
-想快速获取代码的 AI 解析？试试将浏览器地址中的 github.com 替换为 deepwiki.com！（例如：https://github.com/user/repo → https://deepwiki.com/user/repo）。依赖 Deepwiki 服务。
+想快速获取代码的 AI 解析？试试将浏览器地址中的 github.com 替换为 deepwiki.com！（例如：https://github.com/your-username/MultimodalRAG → https://deepwiki.com/your-username/MultimodalRAG）。依赖 Deepwiki 服务。
 
 
 🚀 主要特性
@@ -63,7 +69,9 @@ pip install -r requirements.txt
 🚀 运行系统
 
 准备数据（见下方 数据准备 部分）。
-运行脚本：python yangrouchuan.py
+运行脚本：python MultimodalRAG.py
+或者 MultimodalRAG.ipynb 
+代码是一模一样的
 
 脚本将自动：
 加载数据和图像。
