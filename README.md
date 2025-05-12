@@ -7,6 +7,8 @@
 [![Issues](https://img.shields.io/github/issues/singularguy/MultimodalRAG.svg)](https://github.com/singularguy/MultimodalRAG/issues)
 [![Stars](https://img.shields.io/github/stars/singularguy/MultimodalRAG?style=social)](https://github.com/singularguy/MultimodalRAG/stargazers)
 
+# 初探多模态RAG
+
 项目简介
 本项目展示了一个结合 CLIP、Faiss 和 智谱 AI 的 检索增强生成 (RAG) 系统，能够处理文本和图像数据，支持索引、检索和生成文本、图像及多模态查询的响应。
 
@@ -124,10 +126,19 @@ Generator：与智谱 AI API 交互生成响应。
 文本分块：对长文档进行分块处理。
 
 📅 更新日志
-
+2024.5.12: 精简项目结构，增加说明
 2024.04.28：更新 CLIP 文本/图像处理、存储和检索方法。
 2024.04.27：添加多种技术方案的初步实现。
 2024.04.25：初始代码库。
+
+📚 参考文档
+苏子Ansel OneRAG系列 [https://zhuanlan.zhihu.com/p/1890548455673422523]
+考拉的AI树屋 B站同名
+MiniCPM-V 做多模态RAG [https://modelbest.feishu.cn/wiki/NwhIwkJZYiHOPSkzwPUcq6hanif]
+多模态 RAG 的三种实现 [https://zhuanlan.zhihu.com/p/1885630799371548044]
+智谱のTrustRAG [https://www.zhihu.com/question/6158926419/answer/65659770632]
+
+
 
 🤝 如何贡献
 欢迎任何形式的贡献！如有建议、发现 Bug 或想改进代码，请：
