@@ -1,0 +1,35 @@
+2025-05-12 19:03:03,243 - INFO - [1488022160.py.setup_logging:81] - 全局日志记录器配置完成。日志将同时输出到控制台，并写入文件: multimodal_rag_system_output\logs\system_execution_log.txt
+2025-05-12 19:03:03,246 - INFO - [1488022160.py.<module>:2035] - 
+================================================================================
+2025-05-12 19:03:03,246 - INFO - [1488022160.py.<module>:2036] - ========= Multimodal Retrieval-Augmented Generation (RAG) System =========
+2025-05-12 19:03:03,246 - INFO - [1488022160.py.<module>:2037] - =========                     Main Execution Start                   =========
+2025-05-12 19:03:03,247 - INFO - [1488022160.py.<module>:2038] - ================================================================================
+
+2025-05-12 19:03:03,247 - INFO - [1488022160.py.<module>:2039] - User-defined run identifier (used as fixed directory name): multimodal_rag_system_output
+2025-05-12 19:03:03,248 - INFO - [1488022160.py.<module>:2040] - Sanitized run identifier (final directory name): multimodal_rag_system_output
+2025-05-12 19:03:03,248 - INFO - [1488022160.py.<module>:2041] - All output data will be saved to the fixed top-level directory: d:\ALL IN AI\多模态RAG\IDT_RAG\MultimodalRAG\multimodal_rag_system_output
+2025-05-12 19:03:03,249 - WARNING - [1488022160.py.<module>:2042] - NOTE: This top-level output directory name is fixed. Subsequent runs with the same identifier will OVERWRITE content in this directory (including logs, database, indices, and query results).
+2025-05-12 19:03:03,249 - INFO - [1488022160.py.<module>:2048] - Data source config: JSON metadata file='data.json', Image directory='images'
+2025-05-12 19:03:03,250 - INFO - [1488022160.py.<module>:2066] - Database file will be saved to: multimodal_rag_system_output\data_storage\database\multimodal_doc_store.db
+2025-05-12 19:03:03,251 - INFO - [1488022160.py.<module>:2067] - Faiss index files will be saved to directory: multimodal_rag_system_output\data_storage\vector_indices
+2025-05-12 19:03:03,251 - INFO - [1488022160.py.<module>:2068] - Query session results will be saved to directory: multimodal_rag_system_output\query_session_results
+2025-05-12 19:03:03,251 - INFO - [1488022160.py.<module>:2078] - Model configuration: CLIP Model='openai/clip-vit-base-patch32', Large Language Model (LLM)='glm-4-flash'
+2025-05-12 19:03:03,252 - INFO - [1488022160.py.<module>:2084] - 
+--- [Main Flow] Step 1: Load document data from JSON and associate image files ---
+2025-05-12 19:03:03,253 - INFO - [1488022160.py.load_data_from_json_and_associate_images:157] - 开始从 JSON 文件 'data.json' 加载数据，并在目录 'images' 中关联图像...
+2025-05-12 19:03:03,256 - INFO - [1488022160.py.load_data_from_json_and_associate_images:190] - 已成功从 'data.json' 加载 219 条原始记录。
+2025-05-12 19:03:03,271 - WARNING - [1488022160.py.load_data_from_json_and_associate_images:219] - 警告：跳过第 104 条记录（原始JSON索引 103），原因: 'description'字段缺失或为空。记录内容: {'name': 'Comparator58', 'description': '\n'}
+2025-05-12 19:03:03,287 - INFO - [1488022160.py.load_data_from_json_and_associate_images:256] - 成功准备了 218 个文档用于后续处理。
+2025-05-12 19:03:03,288 - WARNING - [1488022160.py.load_data_from_json_and_associate_images:258] - 在原始 JSON 数据中，共有 1 条记录因格式无效或缺少有效 'name'/'description' 字段而被跳过。
+2025-05-12 19:03:03,288 - INFO - [1488022160.py.load_data_from_json_and_associate_images:259] - 在有效文档中，共有 212 个文档成功关联了图像文件。
+2025-05-12 19:03:03,290 - INFO - [1488022160.py.load_data_from_json_and_associate_images:266] - --- 数据加载与图像关联流程结束 ---
+2025-05-12 19:03:03,291 - INFO - [1488022160.py.<module>:2093] - --- [Main Flow] Step 1 Complete: Successfully loaded and prepared 218 documents for indexing. ---
+
+2025-05-12 19:03:03,493 - INFO - [1488022160.py.<module>:2100] - --- [Main Flow] Step 2: Initialize Indexer and build index for loaded documents ---
+2025-05-12 19:03:03,495 - INFO - [1488022160.py.__init__:574] - 开始初始化 Indexer...
+2025-05-12 19:03:03,496 - INFO - [1488022160.py.__init__:581] -   数据库路径: multimodal_rag_system_output\data_storage\database\multimodal_doc_store.db
+2025-05-12 19:03:03,497 - INFO - [1488022160.py.__init__:582] -   文本索引路径: multimodal_rag_system_output\data_storage\vector_indices\text_vector_index.faiss
+2025-05-12 19:03:03,497 - INFO - [1488022160.py.__init__:583] -   图像索引路径: multimodal_rag_system_output\data_storage\vector_indices\image_vector_index.faiss
+2025-05-12 19:03:03,498 - INFO - [1488022160.py.__init__:584] -   平均向量索引路径: multimodal_rag_system_output\data_storage\vector_indices\mean_vector_index.faiss
+2025-05-12 19:03:03,498 - INFO - [1488022160.py.__init__:588] -   - 正在初始化内部 MultimodalEncoder，使用 CLIP 模型: openai/clip-vit-base-patch32...
+2025-05-12 19:03:03,498 - INFO - [1488022160.py.__init__:308] - 开始初始化 MultimodalEncoder，尝试加载 CLIP 模型: openai/clip-vit-base-patch32

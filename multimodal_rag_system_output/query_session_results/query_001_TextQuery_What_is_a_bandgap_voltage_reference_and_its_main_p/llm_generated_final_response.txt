@@ -1,0 +1,15 @@
+A bandgap voltage reference is a type of electronic circuit used to generate a stable voltage reference that is independent of temperature variations. Its main purpose is to provide a stable voltage output that can be used as a reference for various electronic measurements and processes.
+
+The key components and functions of a bandgap voltage reference, as described in the provided reference documents, include:
+
+1. **PTAT Voltage Generation:** This involves transistors like Q1 and Q2 with unequal emitter areas that generate a voltage proportional to temperature (ΔVBE).
+
+2. **CTAT Voltage Source:** A transistor like Q3 provides a voltage that decreases linearly with temperature (CTAT voltage).
+
+3. **Voltage Summing:** Components like R1 and R2 combine the PTAT and CTAT voltage components to produce a stable output voltage.
+
+4. **Output Voltage Stability:** The resulting voltage (VREF) is typically around 1.2V and remains stable regardless of temperature and supply variations, which is a characteristic of a bandgap reference.
+
+5. **Feedback Structure:** Current mirrors (M1–M5) ensure proper biasing and stability of the circuit.
+
+In summary, a bandgap voltage reference is designed to generate a stable voltage that remains constant across a wide range of temperatures, making it essential for applications where temperature stability is critical.
