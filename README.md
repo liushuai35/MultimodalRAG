@@ -124,7 +124,7 @@
    ```
 
 2. **images/ 目录**：
-   存放与 `data.json` 中 `name` 字段对应的图像文件（例如 `Bandgap1.png`、`PTAT_Current.jpg`）。无图像的文档可不提供。
+   存放与 `data.json` 中 `name` 字段对应的图像文件（例如 `Bandgap1.png`、`PTAT_Current.jpg`）。无图像的文档可不提供。因为我本地内容不方便泄露，放了个mock_data.json，大家可以参考。运行的时候改成data.json就行，里面是示例数据，需要替换成自己的数据。
 
 ---
 

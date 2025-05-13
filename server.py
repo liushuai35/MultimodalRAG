@@ -55,8 +55,8 @@ except ImportError as e:
 app = FastAPI(
     title="Multimodal RAG API",
     version="1.0.0",
-    docs_url=None, # 禁用 Swagger UI (/docs)
-    redoc_url=None   # 禁用 ReDoc (/redoc)
+    # docs_url=None, # 禁用 Swagger UI (/docs)
+    # redoc_url=None   # 禁用 ReDoc (/redoc)
 )
 # Global variables to hold initialized RAG components
 # These will be populated during the startup event.
